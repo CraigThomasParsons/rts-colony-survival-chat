@@ -1,0 +1,42 @@
+
+div.topEdge-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -16px -33px;
+}
+div.leftEdge-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -0px -48px;
+}
+div.rightEdge-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -41px -48px;
+}
+div.bottomEdge-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -16px -70px;
+}
+
+div.TopRightConvexedCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -41px -33px;
+}
+div.TopLeftConvexedCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -0px -32px;
+}
+div.BottomRightConvexedCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -41px -70px;
+}
+div.BottomLeftConvexedCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -0px -70px;
+}
+
+div.inner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -22px -46px;
+}
+div.TopLeftConcaveCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -32px 0px;
+}
+div.TopRightConcaveCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -51px 0px;
+}
+div.bottomLeftConcaveCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -32px -19px;
+}
+div.bottomRightConcaveCorner-CliffSideTile {
+    background:url('../media/CliffSideTiles.png') -51px -19px;
+}

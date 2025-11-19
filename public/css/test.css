@@ -1,0 +1,81 @@
+select.mapGeneratorName {
+    margin-left: 2px;
+}
+table{
+    border: 1px solid black;
+    table-layout: fixed;
+}
+body {
+    padding: 10px;
+}
+th, td {
+    border: 0 solid black;
+    overflow: hidden;
+    min-width:50px;
+    height: 50px;
+}
+div.tile {
+    float: left;
+    width:50%;
+    height:50%;
+}
+
+div.topEdge-WaterTile {
+    background:url('../media/WaterTiles.gif') -16px -33px;   
+}
+div.leftEdge-WaterTile {
+    background:url('../media/WaterTiles.gif') -0px -48px;   
+}
+div.rightEdge-WaterTile {
+    background:url('../media/WaterTiles.gif') -41px -48px;   
+}
+div.bottomEdge-WaterTile {
+    background:url('../media/WaterTiles.gif') -16px -70px;   
+}
+
+div.TopRightConvexedCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -41px -33px;
+}
+div.TopLeftConvexedCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -0px -32px;
+}
+div.BottomRightConvexedCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -41px -70px;   
+}
+div.BottomLeftConvexedCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -0px -70px;   
+}
+
+div.inner-WaterTile {
+    background:url('../media/WaterTiles.gif') -22px -46px;
+}
+div.TopLeftConcaveCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -32px 0px;
+}
+div.TopRightConcaveCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -51px 0px;
+}
+div.bottomLeftConcaveCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -32px -19px;
+}
+div.bottomRightConcaveCorner-WaterTile {
+    background:url('../media/WaterTiles.gif') -51px -19px;
+}
+
+div.LandCell {
+    height:100%;
+    background:url('../media/grass_cell.png');
+    opacity: 0.3;
+}
+
+div.TreeCell {
+    height:100%;
+    background:url('../media/tree_cell.png');
+    opacity: 0.1;
+}
+
+div.RockCell {
+    height:100%;
+    background:url('../media/rock_cell.png');
+    opacity: 0.1;
+}

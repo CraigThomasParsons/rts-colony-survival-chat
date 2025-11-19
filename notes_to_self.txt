@@ -1,0 +1,44 @@
+Monday November 17th 2025
+---------------------------------------------
+sudo pacman -S apache php php-apache mariadb
+
+sudo vim /etc/httpd/conf/httpd.conf
+
+comment out this line
+#LoadModule mpm_event_module modules/mod_mpm_event.so
+
+add this line in
+LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
+
+At the end of the file add
+LoadModule php_module modules/libphp.so
+AddHandler php-script .php
+Include conf/extra/php_module.conf
+
+sudo systemctl enable --now httpd
+
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+
+Monday July 28th 2025 - 2025-07-28 10:51:19
+---------------------------------------------
+https://wareya.github.io/webtyler/m
+
+Wednesday July 23rd 2025 - 2025-07-23 11:19:41
+---------------------------------------------
+I'm going to convert everything to use Mysql.
+Because Mysql always seems to work no matter what version of Laravel I'm using, it will work with any verion of PHP and any version of Laravel.
+
+Started a board to track my thoughts and progress.
+https://craig-parsons.atlassian.net/jira/software/projects/GEN/boards/1
+
+I have an idea but I want to get this project working first then try this:
+  1. I have a done an assignment a long time ago that creates a NodeJS server with API end points that save todo items.
+  2. Those todo items save into a RethinkDB.
+  3. I want to simply convert it to Maps and Tiles.
+
+I like RethinkDB and maybe I can use this in the future
+
+Sunday July 6th 2025 - 2025-07-06 15:36:46
+---------------------------------------------
+Must get MongoDB working. Eventually when I move to doing this on other computers I'll make sure the
+docker-compose file does most of this for me

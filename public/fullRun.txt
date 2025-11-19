@@ -1,0 +1,30 @@
+#!/bin/bash
+echo Running height Map;
+
+# This will create cells from a heightmap generator.
+php artisan map:1init 1
+
+echo "Running First step";
+
+# The first step: Cell-To-Tile-Inialization: Start the intialization of tile records.
+php artisan map:2firststep-tiles 1
+
+echo "Running Second step";
+
+# John Conway's Game of Life: Start the first step of this tree process.
+php artisan map:3trees-firststep 1
+
+echo "Running third step";
+
+# John Conway's Game of Life: Invert the process for 25 iteration, life equals death.
+php artisan map:4trees-secondstep 1
+
+echo "Running fourth step";
+
+# Step 5: Process water tiles.
+php artisan map:5watercells 1
+
+echo "Running the Mountain steps";
+php artisan map:6mountaincell 1 156
+php artisan map:6mountaincell 1 160
+php artisan map:6mountaincell 1 175

@@ -1,0 +1,2 @@
+<?php
+use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('colonists', function (Blueprint $t) { $t->id(); $t->unsignedBigInteger('player_id'); $t->string('name'); $t->string('role')->default('peasant'); $t->json('skills')->nullable(); $t->integer('hp')->default(100); $t->json('needs')->nullable(); $t->json('state')->nullable(); $t->timestamps(); }); } public function down(): void { Schema::dropIfExists('colonists'); } };
