@@ -154,4 +154,69 @@ Each colonist has:
 - Player factions
 - Territory
 - Shared trade economy
-=======
+
+# Colony RTS Project README
+
+*(Draft generated from project conversation summary — polished and structured for GitHub use.)*
+
+## Overview
+A multiplayer, co-operative **RTS-style colony simulation game** built with **Laravel**, **Livewire**, and **MySQL**. Inspired by early Warcraft-style mechanics, the project focuses on resource gathering, worker AI, map generation, and persistent world simulation.
+
+The goal: a lightweight, browser-based RTS foundation with real-time updates, simulation ticks, and a data-driven backend suitable for expansion into a full RTS/colony builder.
+
+---
+
+## Key Features
+### 🎮 Core Gameplay
+- Real-time-ish RTS colony simulation  
+- Co-op multiplayer architecture (shared world state)  
+- Worker units with:  
+  - Task assignment  
+  - Fatigue & retries  
+  - Multi-worker coordination  
+  - Pathing logic  
+  - Individual inventories  
+- Persistent world saved in MySQL  
+- Upgradable buildings & resource pipelines  
+
+---
+
+## 🗺️ Procedural Map Generation
+- Grid-based world (X × Y tiles)  
+- Seed-based terrain generation  
+- Tree distribution and surface resources  
+- Underground layer support (see below)  
+- Resource nodes stored in DB via Eloquent  
+
+---
+
+## 🌑 Underground Layer Architecture
+A full two-layer world system adds depth, strategy, and realism.
+
+### Surface Layer
+- Contains forests, lakes, grasslands, farms, houses, stockpiles  
+- Workers gather **wood**, construct buildings, and path normally  
+- **Mineshaft buildings** allow access to the lower layer  
+
+### Underground Layer
+- Only accessible through mineshafts  
+- Contains:  
+  - Gold veins  
+  - Stone deposits  
+  - Caverns & tunnels  
+- Independent tile grid (same dimensions or custom size)  
+- Different noise & generation rules  
+
+### Mineshaft Building
+- Connects a **surface tile** to an **underground tile**  
+- Workers transition layers when entering/exiting  
+- Functions as a chokepoint for stone/gold extraction  
+
+### Underground Generation
+- Begins as solid rock  
+- Caverns carved using cellular automata or noise  
+- Veins placed in clusters using BFS/DFS flood-fill logic  
+- Entry chamber created under each surface mineshaft  
+
+### Worker Layer Switching
+Workers track:
