@@ -13,6 +13,7 @@
         "livewire/livewire": "*",
         "livewire/volt": "^1.0",
         "lomkit/laravel-rest-api": "^2.12",
+        "openai-php/client": "^0.18.0",
         "picocss/pico": "*"
     },
     "require-dev": {

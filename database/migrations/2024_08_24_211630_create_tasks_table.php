@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         // Check if the table doesn't already exist.
-        if (Schema::hasTable('tasks') === false) {
-            Schema::create('tasks', function($table) {
+        if (Schema::hasTable('colonyTask') === false) {
+            Schema::create('colonyTask', function($table) {
                 $table->increments('id');
                 $table->string('name');
                 $table->timestamps();
             });
         }
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->integer('workLeft');
-        });
+        //Schema::table('colonyTask', function (Blueprint $table) {
+         //   $table->integer('workLeft');
+        //});
     }
 
     /**
@@ -33,10 +33,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tasks');
+        Schema::dropIfExists('colonyTask');
         // Check if the table doesn't already exist.
-        if (Schema::hasTable('tasks') === false) {
-            Schema::create('tasks', function($table) {
+        if (Schema::hasTable('colonyTask') === false) {
+            Schema::create('colonyTask', function($table) {
                 $table->increments('id');
                 $table->string('name');
                 $table->timestamps();

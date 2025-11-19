@@ -220,3 +220,17 @@ A full two-layer world system adds depth, strategy, and realism.
 
 ### Worker Layer Switching
 Workers track:
+
+### Docker instructions
+
+# 1. Build containers
+docker compose build
+
+# 2. Start everything
+docker compose up -d
+
+# 3. Install composer deps
+docker compose exec app composer install
+
+# 4. Run migrations
+docker compose exec app php artisan migrate

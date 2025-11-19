@@ -1,2 +1,26 @@
 <?php
-use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('tasks', function (Blueprint $t) { $t->id(); $t->unsignedBigInteger('game_id'); $t->string('task_type'); $t->unsignedBigInteger('target_id')->nullable(); $t->json('payload')->nullable(); $t->unsignedBigInteger('assigned_colonist_id')->nullable(); $t->string('status')->default('pending'); $t->integer('priority')->default(50); $t->timestamps(); }); } public function down(): void { Schema::dropIfExists('tasks'); } };
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('tasks', function (Blueprint $t) {
+            $t->id();
+            $t->unsignedBigInteger('game_id');
+            $t->string('task_type');
+            $t->unsignedBigInteger('target_id')->nullable();
+            $t->json('payload')->nullable();
+            $t->unsignedBigInteger('assigned_colonist_id')->nullable();
+            $t->string('status')->default('pending');
+            $t->integer('priority')->default(50);
+            $t->timestamps();
+        });
+    }
+    public function down(): void
+    {
+        Schema::dropIfExists('tasks');
+    }
+};

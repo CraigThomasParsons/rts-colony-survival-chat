@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::dropIfExists('todos');
-        Schema::dropIfExists('tasks');
+        Schema::dropIfExists('colonyTask');
 
         // Drop the old tasks table and create a new one.
         // Add what you need to in order to connect task list items to statuses.
-        Schema::create('tasks', function($table) {
+        Schema::create('colonyTask', function($table) {
             $table->increments('id');
             $table->string('name');
             $table->string('title');
@@ -44,6 +44,6 @@ return new class extends Migration
             });
         }
 
-        Schema::dropIfExists('tasks');
+        Schema::dropIfExists('colonyTask');
     }
 };

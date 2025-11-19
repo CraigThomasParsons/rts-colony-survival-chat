@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         // Check if the table doesn't already exist.
-        if (Schema::hasTable('tasks') === false) {
-            Schema::create('tasks', function (Blueprint $table) {
+        if (Schema::hasTable('colonyTask') === false) {
+            Schema::create('colonyTask', function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name');
                 $table->timestamps();
