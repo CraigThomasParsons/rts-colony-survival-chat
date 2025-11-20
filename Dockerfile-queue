@@ -10,15 +10,14 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     mariadb-client \
+    netcat-openbsd \
     && docker-php-ext-install pdo_mysql zip
 
-# Add Composer
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Wait script
+# Add wait script
 COPY docker/wait-for-mysql.sh /usr/local/bin/wait-for-mysql
 RUN chmod +x /usr/local/bin/wait-for-mysql
 
 WORKDIR /var/www/html
-
-# Final command handled in docker-compose
