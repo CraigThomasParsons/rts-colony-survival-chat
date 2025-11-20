@@ -100,15 +100,15 @@ Route::view('profile', 'profile')
 /**
  * Add New Task
  */
-Route::post('/task', function (Request $request) {
+//Route::post('/task', function (Request $request) {
 
-});
+//});
 
 /**
  * Delete Task
  */
-Route::delete('/task/{task}', function (Task $task) {
+//Route::delete('/task/{task}', function (Task $task) {
 
-});
+//});
 
 require __DIR__.'/auth.php';
