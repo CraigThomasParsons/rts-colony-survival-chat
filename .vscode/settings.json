@@ -1,0 +1,15 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": false
+  },
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "runOnSave.commands": [
+    {
+      "match": ".*",
+      "command": "workbench.action.tasks.runTask",
+      "args": "Run Codex QA"
+    }
+  ]
+}
+
