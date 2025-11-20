@@ -9,12 +9,18 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    mariadb-client \
+    bash \
     && docker-php-ext-install pdo_mysql zip
 
-# Copy Composer from official image
+# Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Default command (your docker-compose overrides this)
-# CMD ["php-fpm"] I guess docker-compose doesn't override it
+# Add the wait script into the container
+COPY wait-for-mysql.sh /wait-for-mysql.sh
+RUN chmod +x /wait-for-mysql.sh
+
+# Let docker-compose override CMD
+CMD ["php-fpm"]
