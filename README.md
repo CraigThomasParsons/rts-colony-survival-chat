@@ -89,18 +89,10 @@ Each colonist has:
 - Submit a PR
 - Include test coverage where appropriate
 
-📅 Planned Features (Roadmap) 🌱 Gameplay
-
-- Temperature system & seasons
-- Hunting & wildlife
-- Illness + medicine
-- Bandit raids
-- Diplomacy/reputation system
-
 ⚙️ Systems
 
 - Save/load multiple worlds
-- Deeper colonist AI (psych traits, work priorities RimWorld-style)
+- Deeper colonist AI (psych traits, work priorities)
 - Auto-designated work zones
 - Blueprint system for buildings
 
