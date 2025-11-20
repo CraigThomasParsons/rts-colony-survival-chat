@@ -10,12 +10,18 @@ use OpenAI\Exceptions\RateLimitException;
 class PatchService
 {
     /**
+     * PatchService
+     *
+     * Service for generating and managing git patches using OpenAI.
+     */
+    /**
      * Generate a unified git patch using OpenAI, with retry/backoff.
      */
     public function generatePatch(string $instruction): Patch
     {
         // Create the initial patch record
         $patch = Patch::create([
+            //instruction given to chatGPT
             'instruction' => $instruction,
             'status'      => 'generating',
         ]);
@@ -90,3 +96,8 @@ class PatchService
         return $patch; // Should never reach here
     }
 }
+
+// AI Notes:
+// - This service uses the OpenAI API to generate git patches based on instructions.
+// - It includes retry logic with exponential backoff to handle rate limits.
+// - The generated patches are stored in the database.

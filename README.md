@@ -6,19 +6,6 @@ When you're done, you can delete the content in this README and update the file 
 
 ---
 
-## Edit a file
-
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
-
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
-
----
-
 ## Create a file
 
 Next, you’ll add a new file to this repository.
@@ -157,14 +144,21 @@ Each colonist has:
 
 # Colony RTS Project README
 
-*(Draft generated from project conversation summary — polished and structured for GitHub use.)*
-
 ## Overview
 A multiplayer, co-operative **RTS-style colony simulation game** built with **Laravel**, **Livewire**, and **MySQL**. Inspired by early Warcraft-style mechanics, the project focuses on resource gathering, worker AI, map generation, and persistent world simulation.
 
 The goal: a lightweight, browser-based RTS foundation with real-time updates, simulation ticks, and a data-driven backend suitable for expansion into a full RTS/colony builder.
 
 ---
+# Name ideas
+ - Colonizing Scum
+ - Frontier Scoundrels
+ - Feudal Frontiers
+ - Dominion Foundry
+ - Bannered Colonies
+ - Lordship Settlers
+ - Barony Builders
+ - Crown & Colony
 
 ## Key Features
 ### 🎮 Core Gameplay

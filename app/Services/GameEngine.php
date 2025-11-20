@@ -8,7 +8,7 @@ use App\Events\GameTicked;
 /**
  * GameEngine - central tick loop and simulation advance.
  *
- * This service is intentionally simplified for clarity. It shows where to integrate
+ * This service is intentionally simplified for clarity. It shows where to integrate 
  * colony hooks (JobScheduler, NeedsSystem, ColonistManager), bot decisions, and unit updates.
  */
 class GameEngine
@@ -16,6 +16,12 @@ class GameEngine
     protected $tickSeconds = 1.0;
 
     public function tick(Game $game, $commands)
+    /**
+     * Advance the game simulation by one tick.
+     *
+     * @param Game $game
+     * @param array $commands Array of Command models to process.
+     */
     {
         $diff = ['units'=>[],'players'=>[],'buildings'=>[]];
 
@@ -51,3 +57,7 @@ class GameEngine
         return ['diff'=>$diff];
     }
 }
+
+// AI Notes:
+// - This service is the main game loop.
+// - It integrates various colony systems, bot decisions, and unit updates.

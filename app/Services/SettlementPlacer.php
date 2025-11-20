@@ -29,7 +29,7 @@ class SettlementPlacer
     public function placeSettlements($map, int $count = 3, int $minDistance = 20, $seed = null, int $gameId = 1): array
     {
         if ($seed !== null) { srand((int)$seed); }
-
+        
         $w = $map->width; $h = $map->height;
         $placed = [];
         $tries = 0;
@@ -67,3 +67,8 @@ class SettlementPlacer
         return $placed;
     }
 }
+
+// AI Notes:
+// - This service places settlements on the map.
+// - It uses a procedural algorithm to ensure a minimum distance between settlements.
+// - The placement is deterministic if a seed is provided.

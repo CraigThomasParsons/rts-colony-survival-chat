@@ -97,6 +97,16 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
+
+Route::get('/dev/qa', function () {
+    $report = file_exists('/tmp/codex-report.txt')
+        ? file_get_contents('/tmp/codex-report.txt')
+        : "No QA report found.";
+
+    return response("<pre>{$report}</pre>", 200)
+        ->header('Content-Type', 'text/html');
+});
+
 /**
  * Add New Task
  */

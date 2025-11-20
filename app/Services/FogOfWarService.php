@@ -7,7 +7,7 @@ use App\Models\Colonist;
 /**
  * FogOfWarService
  *
- * Computes visible tiles for a player based on colonist positions and vision radii.
+ * Computes visible tiles for a player based on colonist positions and vision radii. 
  * Intention: simple circular visibility (no LOS), returned as a boolean matrix.
  */
 class FogOfWarService
@@ -16,12 +16,12 @@ class FogOfWarService
      * Compute visibility matrix for player.
      *
      * @param MapModel $map
-     * @param int $playerId
+     * @param int      $playerId
      * @param int $vision default vision radius in tiles
      * @return array [ [bool,...], ... ] same size as map
      */
     public function computeVisibility($map, int $playerId, int $vision = 8): array
-    {
+    {   
         $w = $map->width; $h = $map->height;
         $vis = array_fill(0, $h, array_fill(0, $w, false));
 
@@ -42,3 +42,7 @@ class FogOfWarService
         return $vis;
     }
 }
+
+// AI Notes:
+// - This service computes the fog of war for a player.
+// - It uses a simple circular visibility model.

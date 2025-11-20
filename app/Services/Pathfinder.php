@@ -9,23 +9,56 @@ use App\Models\Tile;
  */
 class Pathfinder
 {
+    /** @var Map|null $map The map to pathfind on. */
     protected $map;
+    /** @var array $tiles A lookup table of tiles on the map, keyed by "x,y". */
     protected $tiles;
+    /** @var array $terrainCosts Terrain costs for pathfinding, higher is slower, INF is impassable. */
     protected $terrainCosts = ['grass'=>1.0,'road'=>0.7,'forest'=>1.8,'hill'=>2.5,'water'=>INF];
 
-    public function __construct(Map $map = null) { $this->map = $map; $this->loadTiles(); }
+    /**
+     * Pathfinder constructor.
+     *
+     * @param Map|null $map The map to pathfind on.
+     */
+    public function __construct(Map $map = null) {
+        $this->map = $map;
+        $this->loadTiles();
+    }
 
+    /**
+     * Load tiles from the map into the $tiles array for quick lookup.
+     *
+     * @return void
+     */
     protected function loadTiles()
     {
         $this->tiles = [];
         if (!$this->map) return;
         $ts = $this->map->tiles()->get();
+        // key by x,y for fast lookup
         foreach ($ts as $t) $this->tiles[$t->x.','.$t->y] = $t;
     }
 
-    protected function passable($x,$y) { $k = $x.','.$y; if (!isset($this->tiles[$k])) return false; return ($this->tiles[$k]->terrain ?? 'grass') !== 'water'; }
-    protected function terrainCost($x,$y) { $k=$x.','.$y; if (!isset($this->tiles[$k])) return INF; $t = $this->tiles[$k]->terrain ?? 'grass'; return $this->terrainCosts[$t] ?? 1.0; }
+    /**
+     * Check if a tile is passable (not water).
+     * @param int $x
+     * @param int $y
+     * @return bool
+     */
+    protected function passable(int $x, int $y): bool { $k = $x.','.$y; if (!isset($this->tiles[$k])) return false; return ($this->tiles[$k]->terrain ?? 'grass') !== 'water'; }
 
+    /**
+     * Get the terrain cost for a tile.
+     * @param int $x
+     * @param int $y
+     * @return float
+     */
+    protected function terrainCost(int $x, int $y): float { $k=$x.','.$y; if (!isset($this->tiles[$k])) return INF; $t = $this->tiles[$k]->terrain ?? 'grass'; return $this->terrainCosts[$t] ?? 1.0; }
+
+    /**
+     * Heuristic function for A* (diagonal distance).
+     */
     protected function heuristic($ax,$ay,$bx,$by)
     {
         $dx = abs($ax-$bx); $dy = abs($ay-$by); $F = sqrt(2)-1; return ($dx<$dy) ? $F*$dx + $dy : $F*$dy + $dx;
@@ -42,6 +75,15 @@ class Pathfinder
         return $res;
     }
 
+    /**
+     * Find a path from start to end using A*.
+     *
+     * @param int $startX
+     * @param int $startY
+     * @param int $endX
+     * @param int $endY
+     * @return array An array of ['x'=>int,'y'=>int] or [] if no path found.
+     */
     public function findPath($startX,$startY,$endX,$endY)
     {
         if (!$this->map) return [];

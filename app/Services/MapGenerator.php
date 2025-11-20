@@ -13,15 +13,14 @@ use App\Models\ResourceNode;
  * - Scatter resource nodes (wood, stone, gold) in plausible clusters
  * - Save Map, Tiles, and ResourceNode rows to DB
  */
+
 class MapGenerator
 {
     protected $width;
     protected $height;
     protected $seed;
 
-    public function __construct(
-        int $cellWidth = 32,
-        int $cellHeight = 32,
+    public function __construct(int $cellWidth = 32, int $cellHeight = 32,
         ?int $seed = null,
         int $originX = 0,
         int $originY = 0,
@@ -35,6 +34,11 @@ class MapGenerator
       mt_srand($this->seed);
     }
 
+    /**
+     * Generate the map and save it to the database.
+     *
+     * @param Map $map
+     */
     public function generate(Map $map)
     {
         // store map meta
@@ -64,6 +68,10 @@ class MapGenerator
         return $map;
     }
 
+    /**
+     * Generate noise value for terrain generation.
+     * (Simple layered random thresholds)
+     */
     protected function noise($x, $y)
     {
         // naive value: combine sine waves and rand for variation
@@ -71,6 +79,11 @@ class MapGenerator
         return ($v + 1) / 2.0; // normalize 0..1
     }
 
+    /**
+     * Scatter resource nodes on the map.
+     *
+     * @param Map $map
+     */
     protected function scatterNodes(Map $map, $type, $count, $cluster, $amount)
     {
         for ($i = 0; $i < $count; $i++) {
@@ -84,3 +97,7 @@ class MapGenerator
         }
     }
 }
+
+// AI Notes:
+// - This service generates the game map.
+// - It uses a simple noise function to create terrain.

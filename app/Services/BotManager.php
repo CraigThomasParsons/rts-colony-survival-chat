@@ -9,19 +9,29 @@ use App\Models\Building;
 
 /**
  * BotManager - DI-friendly, testable bot orchestrator.
- * Implements farming cycles and multi-worker coordination by creating Commands.
+ * Implements farming cycles and multi-worker coordination by creating Commands. 
  */
 class BotManager
 {
     protected $patrolChance = 20;
     protected $attackRange = 2.0;
 
+    /**
+     * BotManager constructor.
+     *
+     * @param int $patrolChance Chance (1-100) that a worker will patrol if idle.
+     * @param float $attackRange Max distance a combat unit will chase.
+     */
     public function __construct($patrolChance = 20, $attackRange = 2.0)
     {
         $this->patrolChance = $patrolChance;
         $this->attackRange = $attackRange;
     }
 
+    /**
+     * Main tick loop: iterate bots, then units, then decide.
+     * DI-friendly to allow testable overrides.
+     */
     public function tick($game)
     {
         $bots = Player::where('game_id', $game->id)->where('is_bot', true)->get();
@@ -31,11 +41,17 @@ class BotManager
         }
     }
 
+    /**
+     * Decide what a unit should do.
+     */
     protected function decideForUnit($unit, $bot, $game)
     {
         $type = $unit->type ?? 'worker';
         if ($type === 'worker') $this->workerBehavior($unit, $bot, $game); else $this->combatBehavior($unit,$bot,$game);
     }
+
+    /**
+     * Logic for worker units. */
 
     protected function workerBehavior($unit, $bot, $game)
     {
@@ -57,6 +73,8 @@ class BotManager
         }
     }
 
+    /**
+     * Logic for combat units. */
     protected function combatBehavior($unit,$bot,$game)
     {
         $closest = null; $closestDist = PHP_INT_MAX;
@@ -70,6 +88,8 @@ class BotManager
         }
     }
 
+    /**
+     * Issue a command to return resources to the nearest town hall. */
     protected function issueReturnCommand($unit,$bot,$game)
     {
         $drop = Building::where('player_id',$bot->id)->where('type','town_hall')->orderByRaw('ABS(x - ?) + ABS(y - ?)', [$unit->x,$unit->y])->first();
@@ -77,3 +97,7 @@ class BotManager
         Command::create(['game_id'=>$game->id,'player_id'=>$bot->id,'command_type'=>'move','payload'=>json_encode(['unit_id'=>$unit->id,'x'=>$tx,'y'=>$ty])]);
     }
 }
+
+// AI Notes:
+// - This service manages the behavior of bot players.
+// - It implements farming cycles and combat behavior.
