@@ -1,8 +1,6 @@
-# Dockerfile-queue
-
 FROM php:8.3-fpm
 
-# Install system deps
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     zip \
@@ -13,12 +11,10 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     && docker-php-ext-install pdo_mysql zip
 
-# Copy composer from official image
+# Copy Composer from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Ensure vendor autoload is available inside container
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader || true
-
-CMD ["php", "artisan", "queue:work", "--verbose", "--tries=3", "--timeout=90"]
+# Default command (your docker-compose overrides this)
+# CMD ["php-fpm"] I guess docker-compose doesn't override it

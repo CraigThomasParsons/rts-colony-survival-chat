@@ -1,14 +1,18 @@
-# Dockerfile-scheduler — Laravel Scheduler
 FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
-    git zip unzip \
-    libzip-dev libpng-dev libonig-dev libxml2-dev \
+    git \
+    zip \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    default-mysql-client \
     && docker-php-ext-install pdo_mysql zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Schedule worker loop
-CMD ["php", "artisan", "schedule:work"]
+# No CMD — schedule runner is controlled by docker-compose
