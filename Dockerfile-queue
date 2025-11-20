@@ -19,8 +19,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # Add the wait script into the container
-COPY wait-for-mysql.sh /wait-for-mysql.sh
-RUN chmod +x /wait-for-mysql.sh
+COPY docker/wait-for-mysql.sh /usr/local/bin/wait-for-mysql
+RUN chmod +x /usr/local/bin/wait-for-mysql
 
 # Let docker-compose override CMD
-CMD ["php-fpm"]
+CMD ["sh", "-c", "wait-for-mysql && php artisan queue:work --verbose --tries=3 --timeout=90"]

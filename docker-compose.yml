@@ -98,11 +98,11 @@ services:
 
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL: gpt-4.1
-    command: >
-      bash -c "
-      /wait-for-mysql.sh &&
-      php artisan queue:work --verbose --tries=3 --timeout=90
-      "
+    command: > 
+      sh -c "./docker/wait-for-mysql.sh &&
+         php artisan queue:work --verbose --tries=3 --timeout=90"
+
+
     networks:
       - rtsnet
 
@@ -129,11 +129,9 @@ services:
 
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL: gpt-4.1
-    command: >
-      bash -c "
-      /wait-for-mysql.sh &&
-      while true; do php artisan schedule:run --verbose; sleep 60; done
-      "
+      command: >
+        sh -c "./docker/wait-for-mysql.sh &&
+         while true; do php artisan schedule:run --verbose; sleep 60; done
     networks:
       - rtsnet
 
