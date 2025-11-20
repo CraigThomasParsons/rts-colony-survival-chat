@@ -29,108 +29,47 @@ class PackageImporterService
     public function processNewPackages(): array
     {
         $processed = [];
+        $packagesDir = base_path($this->packageDir);
 
-        foreach (glob(base_path($this->packageDir . '/*.zip')) as $zipFile) {
+        if (!is_dir($packagesDir)) {
+            Log::warning("📦 [PackageImporter] Packages directory {$packagesDir} does not exist.");
+            return $processed;
+        }
+
+        foreach (glob($packagesDir . '/*.zip') as $zipFile) {
             $packageName = basename($zipFile);
-            Log::info("📦 [PackageImporter] Found package: {$packageName}");
+            $safeName = pathinfo($packageName, PATHINFO_FILENAME);
+            $extractPath = "{$packagesDir}/{$safeName}";
 
-            $extractPath = base_path($this->packageDir . '/' . pathinfo($packageName, PATHINFO_FILENAME));
+            Log::info("📦 [PackageImporter] Processing {$packageName}");
 
-            if (!is_dir($extractPath)) {
-                mkdir($extractPath, 0777, true);
+            File::deleteDirectory($extractPath);
+            File::makeDirectory($extractPath, 0755, true);
+
+            $zip = new ZipArchive();
+            if ($zip->open($zipFile) !== true) {
+                Log::error("❌ [PackageImporter] Unable to open {$packageName}");
+                continue;
             }
 
-            //Log::info("📦 [PackageImporter] Extracted {$packageName} → {$extractPath}");
-                // // Extract zip
-                // $zip = new ZipArchive;
-                // if ($zip->open($file) === true) {
-
-                //     $extractPath = "{$packagesDir}/{$safeName}";
-                    
-                //     if (!file_exists($extractPath)) {
-                //         mkdir($extractPath, 0755, true);
-                //     }
-
-                //     $zip->extractTo($extractPath);
-                //     $zip->close();
-
-                //     $this->info("📦 Extracted to {$extractPath}");
-
-                //     // ────────────────────────────────────────────
-                //     // 🔥 RSYNC into project (safe mode)
-                //     // ────────────────────────────────────────────
-                //     $this->info("🔄 Applying package via rsync…");
-
-                //     $exclude = [
-                //         'vendor',
-                //         'node_modules',
-                //         '.env',
-                //         '.git',
-                //         'packages',
-                //     ];
-
-                //     $excludeArgs = '';
-                //     foreach ($exclude as $ex) {
-                //         $excludeArgs .= " --exclude={$ex}";
-                //     }
-
-                //     $cmd = "rsync -av --delete {$excludeArgs} {$extractPath}/ /var/www/html/";
-
-                //     exec($cmd, $output, $result);
-
-                //     if ($result !== 0) {
-                //         $this->error("❌ rsync failed with code {$result}");
-                //     } else {
-                //         $this->info("✅ rsync applied successfully");
-                //     }
-                // }
-
-            // Extract zip
-            $zip = new ZipArchive;
-            if ($zip->open($file) === true) {
-
-                $extractPath = "{$packagesDir}/{$safeName}";
-                
-                if (!file_exists($extractPath)) {
-                    mkdir($extractPath, 0755, true);
-                }
-
-                $zip->extractTo($extractPath);
+            if (!$zip->extractTo($extractPath)) {
+                Log::error("❌ [PackageImporter] Failed extracting {$packageName}");
                 $zip->close();
-
-                $this->info("📦 Extracted to {$extractPath}");
-
-                // ────────────────────────────────────────────
-                // 🔥 RSYNC into project (safe mode)
-                // ────────────────────────────────────────────
-                $this->info("🔄 Applying package via rsync…");
-
-                $exclude = [
-                    'vendor',
-                    'node_modules',
-                    '.env',
-                    '.git',
-                    'packages',
-                ];
-
-                $excludeArgs = '';
-                foreach ($exclude as $ex) {
-                    $excludeArgs .= " --exclude={$ex}";
-                }
-
-                $cmd = "rsync -av --delete {$excludeArgs} {$extractPath}/ /var/www/html/";
-
-                exec($cmd, $output, $result);
-
-                if ($result !== 0) {
-                    $this->error("❌ rsync failed with code {$result}");
-                } else {
-                    $this->info("✅ rsync applied successfully");
-                }
+                continue;
             }
 
-            // Optional: archive old zip
-            rename($zipFile, $zipFile . '.imported');
+            $zip->close();
+            $processed[] = [
+                'package' => $packageName,
+                'path' => $extractPath,
+            ];
+
+            $archiveName = $zipFile . '.imported';
+            if (File::exists($archiveName)) {
+                File::delete($archiveName);
+            }
+
+            File::move($zipFile, $archiveName);
         }
 
         return $processed;
