@@ -1,6 +1,6 @@
 FROM php:8.3-fpm
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     git \
     zip \
@@ -10,17 +10,15 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     mariadb-client \
-    bash \
     && docker-php-ext-install pdo_mysql zip
 
-# Install Composer
+# Add Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
-
-# Add the wait script into the container
+# Wait script
 COPY docker/wait-for-mysql.sh /usr/local/bin/wait-for-mysql
 RUN chmod +x /usr/local/bin/wait-for-mysql
 
-# Let docker-compose override CMD
-CMD ["sh", "-c", "wait-for-mysql && php artisan queue:work --verbose --tries=3 --timeout=90"]
+WORKDIR /var/www/html
+
+# Final command handled in docker-compose
