@@ -18,61 +18,86 @@ use ZipArchive;
  */
 class PackageImporterService
 {
-    protected string $packageDir;
-
-    public function __construct()
+    public function processNewPackages(): void
     {
-        // Default directory for packages relative to the project base path.
-        $this->packageDir = 'packages';
+        $packagesDir = base_path('packages');
+
+        if (!file_exists($packagesDir)) {
+            Log::info("📦 packages directory does not exist, skipping.");
+            return;
+        }
+
+        $files = scandir($packagesDir);
+
+        foreach ($files as $fileName) {
+
+            if (!str_ends_with($fileName, '.zip')) {
+                continue;
+            }
+
+            // full path to the zip file
+            $filePath = "{$packagesDir}/{$fileName}";
+            $safeName = pathinfo($fileName, PATHINFO_FILENAME);
+
+            Log::info("📦 Processing package zip: {$fileName}");
+
+            // Check if already imported
+            if (file_exists("{$packagesDir}/{$fileName}.imported")) {
+                Log::info("📦 Package {$fileName} already imported — skipping.");
+                continue;
+            }
+
+            // Extract zip
+            $zip = new ZipArchive;
+
+            if ($zip->open($filePath) === true) {
+
+                $extractPath = "{$packagesDir}/{$safeName}";
+                
+                if (!file_exists($extractPath)) {
+                    mkdir($extractPath, 0755, true);
+                }
+
+                Log::info("📦 Extracting {$fileName} into {$extractPath}...");
+                $zip->extractTo($extractPath);
+                $zip->close();
+
+                // Mark as imported
+                rename(
+                    $filePath,
+                    "{$packagesDir}/{$fileName}.imported"
+                );
+
+                Log::info("📦 Extraction complete. Marked {$fileName} as imported.");
+
+                // Run rsync (no delete)
+                $this->syncPackage($extractPath);
+
+            } else {
+                Log::error("❌ Failed to open zip file: {$filePath}");
+            }
+        }
     }
 
-    public function processNewPackages(): array
+    private function syncPackage(string $packagePath): void
     {
-        $processed = [];
-        $packagesDir = base_path($this->packageDir);
+        $destination = base_path();
 
-        if (!is_dir($packagesDir)) {
-            Log::warning("📦 [PackageImporter] Packages directory {$packagesDir} does not exist.");
-            return $processed;
+        $cmd = sprintf(
+            'rsync -avr "%s/" "%s/" --exclude vendor --exclude node_modules --exclude .env --exclude packages',
+            $packagePath,
+            $destination
+        );
+
+        Log::info("🔄 Running rsync: {$cmd}");
+
+        exec($cmd, $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            Log::error("❌ Rsync failed with code {$returnVar}");
+        } else {
+            Log::info("✅ Rsync completed successfully.");
         }
-
-        foreach (glob($packagesDir . '/*.zip') as $zipFile) {
-            $packageName = basename($zipFile);
-            $safeName = pathinfo($packageName, PATHINFO_FILENAME);
-            $extractPath = "{$packagesDir}/{$safeName}";
-
-            Log::info("📦 [PackageImporter] Processing {$packageName}");
-
-            File::deleteDirectory($extractPath);
-            File::makeDirectory($extractPath, 0755, true);
-
-            $zip = new ZipArchive();
-            if ($zip->open($zipFile) !== true) {
-                Log::error("❌ [PackageImporter] Unable to open {$packageName}");
-                continue;
-            }
-
-            if (!$zip->extractTo($extractPath)) {
-                Log::error("❌ [PackageImporter] Failed extracting {$packageName}");
-                $zip->close();
-                continue;
-            }
-
-            $zip->close();
-            $processed[] = [
-                'package' => $packageName,
-                'path' => $extractPath,
-            ];
-
-            $archiveName = $zipFile . '.imported';
-            if (File::exists($archiveName)) {
-                File::delete($archiveName);
-            }
-
-            File::move($zipFile, $archiveName);
-        }
-
-        return $processed;
     }
 }
 

@@ -12,7 +12,8 @@ class GenerateMap extends Command
         {--w=32 : Cell width} 
         {--h=32 : Cell height}
         {--origin-x=0}
-        {--origin-y=0}';
+        {--origin-y=0}
+        {--game-id= : Optional game ID to attach the map to}';
 
     protected $description = 'Generate a map (cells + tiles) into MySQL';
 
@@ -23,6 +24,12 @@ class GenerateMap extends Command
         $height   = (int) $this->option('h');
         $originX  = (int) $this->option('origin-x');
         $originY  = (int) $this->option('origin-y');
+        $gameId   = $this->option('game-id');
+
+        if ($gameId !== null && ! \App\Models\Game::query()->whereKey($gameId)->exists()) {
+            $this->error("Game #{$gameId} does not exist.");
+            return static::FAILURE;
+        }
 
         $generator = new MapGenerator(
             cellWidth:  $width,
@@ -32,9 +39,10 @@ class GenerateMap extends Command
             originY:    $originY,
         );
 
-        $map = $generator->generate($name);
+        $map = $generator->generate($name, $gameId ? (int) $gameId : null);
+        $origin = $map->meta['origin'] ?? ['x' => $originX, 'y' => $originY];
 
-        $this->info("Map #{$map->id} generated at origin ({$map->coordinateX}, {$map->coordinateY})");
+        $this->info("Map #{$map->id} generated for game {$map->game_id} at origin ({$origin['x']}, {$origin['y']})");
 
         return static::SUCCESS;
     }

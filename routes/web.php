@@ -1,15 +1,32 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\StatusController;
+use App\Http\Controllers\GameController;
 use App\Http\Controllers\MapController;
 
 Route::get('/', function()
 {
-    //return View::make('mainEntrance');
     return view('mainEntrance');
-});
+})->name('main.entrance');
+
+// Main Menu Routes
+Route::get('/new-game', function () {
+    return view('game.new');
+})->name('game.new');
+
+Route::post('/game', [GameController::class, 'create'])->name('game.create');
+
+Route::get('/load-game', function () {
+    return view('game.load');
+})->name('game.load');
+
+Route::get('/control-panel', function () {
+    return '<h1>Admin Control Panel</h1><p>Placeholder for admin controls.</p>';
+})->name('control-panel')->middleware('auth'); // Example middleware
+
+Route::get('/settings', function () {
+    return '<h1>Settings</h1><p>Placeholder for game settings.</p>';
+})->name('settings');
 
 // Map generator index.
 Route::get('/Map', [ 
@@ -73,22 +90,6 @@ Route::get('/Map/save/{mapId}/', array(
     'saveMongoToMysql'
 ));
 
-// Update our 'home' route to redirect to /tasks
-Route::get('/home', function () {
-    return redirect()->route('tasks.index');
-})->name('home');
-
-
-Route::get('/tasks', [TaskController::class.'@show', 'tasks.index']);
-
-Route::put('tasks/sync', TaskController::class.'@sync')->name('tasks.sync');
-
-
-Route::resources([
-    'task' => TaskController::class,
-    'statuses' => StatusController::class,
-]);
-
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -98,12 +99,18 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 
-Route::get('/dev/qa', function () {
+Route::get('/dev/codex-report', function () {
     $report = file_exists('/tmp/codex-report.txt')
         ? file_get_contents('/tmp/codex-report.txt')
         : "No QA report found.";
 
     return response("<pre>{$report}</pre>", 200)
+        ->header('Content-Type', 'text/html');
+});
+
+Route::get('/dev/qa', function () {
+    $log = @file_get_contents('/tmp/package-watcher.log');
+    return response("<pre>$log</pre>", 200)
         ->header('Content-Type', 'text/html');
 });
 
