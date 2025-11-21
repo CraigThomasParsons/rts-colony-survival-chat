@@ -15,7 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
             <livewire:layout.navigation />
 
             <!-- Page Heading -->
@@ -28,8 +28,18 @@
             @endif
 
             <!-- Page Content -->
-            <main>
-                {{ $slot }}
+            <main class="flex-1">
+                <div class="py-10">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        @hasSection('content')
+                            @yield('content')
+                        @elseif(isset($slot))
+                            {{ $slot }}
+                        @else
+                            {{-- No content provided --}}
+                        @endif
+                    </div>
+                </div>
             </main>
         </div>
     </body>

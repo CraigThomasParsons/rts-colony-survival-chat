@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GameViewController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MapController;
 
@@ -11,31 +12,40 @@ Route::get("/", function () {
 // Main Menu Routes
 Route::get("/new-game", function () {
     return view("game.new");
-})->name("game.new");
+})
+    ->middleware("auth")
+    ->name("game.new");
 
-Route::post("/game", [GameController::class, "create"])->name("game.create");
+Route::post("/game", [GameController::class, "create"])
+    ->middleware("auth")
+    ->name("game.create");
 
-Route::get("/game/{mapId}/mapgen", [GameController::class, "mapGenForm"])->name(
-    "game.mapgen.form",
-);
-Route::post("/game/{mapId}/mapgen", [
-    GameController::class,
-    "mapGenStart",
-])->name("game.mapgen.start");
+Route::get("/game/{mapId}/mapgen", [GameController::class, "mapGenForm"])
+    ->middleware("auth")
+    ->name("game.mapgen.form");
+Route::post("/game/{mapId}/mapgen", [GameController::class, "mapGenStart"])
+    ->middleware("auth")
+    ->name("game.mapgen.start");
 
 //
 // Progress view & stream for map generation logs
 // - GET  /game/{mapId}/progress         -> shows the progress page (tails the log via SSE or AJAX)
 // - GET  /game/{mapId}/progress/stream  -> server-sent events endpoint that streams log lines
 //
-Route::get("/game/{mapId}/progress", [
-    GameController::class,
-    "mapGenProgress",
-])->name("game.mapgen.progress");
+Route::get("/game/{mapId}/progress", [GameController::class, "mapGenProgress"])
+    ->middleware("auth")
+    ->name("game.mapgen.progress");
 Route::get("/game/{mapId}/progress/stream", [
     GameController::class,
     "mapGenProgressStream",
-])->name("game.mapgen.progress.stream");
+])
+    ->middleware("auth")
+    ->name("game.mapgen.progress.stream");
+
+// The actual "Game View" page
+Route::get("/game/{game}/view", [GameController::class, "view"])->name(
+    "game.view",
+);
 
 Route::get("/load-game", function () {
     return view("game.load");
