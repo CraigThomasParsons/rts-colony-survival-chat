@@ -1,33 +1,15 @@
-<!doctype html>
-<html>
-    <head>
-      <meta charset="utf-8">
-      <title>Map Loader</title>
-    </head>
-    <body>
-        <p>Setting up a basic step driver for maps</p>
-        <div>
-            <a href="{{URL::route('mapgen.step1', '1')}}">
-              Step 1
-            </a>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            Map Generator Preview
+        </h2>
+    </x-slot>
+
+    <div class="py-10">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-8">
+                <livewire:map-generator-preview />
+            </div>
         </div>
-        <br />
-        <div>
-            <a href="{{URL::route('mapgen.step2', '1')}}">
-              Step 2
-            </a>
-        </div>
-        <br />
-        <div>
-            <a href="{{URL::route('mapgen.step3', '1')}}">
-              Step 3
-            </a>
-        </div>
-        <br />
-        <div>
-            <a href="{{URL::route('mapgen.step4', '1')}}">
-              Step 4
-            </a>
-        </div>
-    </body>
-</html>
+    </div>
+</x-app-layout>

@@ -11,13 +11,26 @@ namespace App\Services;
  */
 class UndergroundGenerator
 {
+    /** Width of the underground grid. */
     protected int $width;
+
+    /** Height of the underground grid. */
     protected int $height;
+
+    /** Seed for deterministic random walk. */
     protected int $seed;
+
+    /** Ratio of tiles that become walkable via random walk. */
     protected float $fillRatio;
+
+    /** Number of concurrent walkers carving the cavern. */
     protected int $walkerCount;
+
+    /** Probability the current walker spawns a new branch. */
     protected float $branchChance;
-    protected ?callable $tileUpdatedCallback = null;
+
+    /** Callback invoked whenever a tile changes (for streaming previews). */
+    protected $tileUpdatedCallback = null;
 
     public function __construct(
         int $width = 48,
@@ -40,12 +53,18 @@ class UndergroundGenerator
     /**
      * Attach a callback that receives ($x, $y, $type) each time a tile changes.
      */
+    /**
+     * Register a streaming callback that receives ($x, $y, $type) whenever a tile changes.
+     */
     public function onTileUpdated(?callable $callback): self
     {
         $this->tileUpdatedCallback = $callback;
         return $this;
     }
 
+    /**
+     * Emit tile updates to listening UIs/commands.
+     */
     protected function emitTile(int $x, int $y, string $type): void
     {
         if ($this->tileUpdatedCallback) {
@@ -55,6 +74,9 @@ class UndergroundGenerator
 
     /**
      * Generate the entire underground layout description.
+     */
+    /**
+     * Run the full underground generation process.
      */
     public function generate(): array
     {
