@@ -1,0 +1,55 @@
+Game Title: Echoes of a New Dawn (or your chosen title)
+
+Visuals:
+
+The background should be a wide, sweeping shot of a newly established, yet still primitive, colony nestled in a challenging environment.
+
+Foreground: A small group of hardy colonists, perhaps three to five, are visible in the foreground, engaged in essential tasks. One might be chopping wood, another tending a small plot of crops, and a third scouting the perimeter with a simple tool. They are bundled in practical, slightly worn clothing, suggesting resilience.
+
+Midground: The nascent colony itself:
+
+Main Structure: A central, sturdy-looking, but still humble, wooden or stone hall, with smoke gently rising from a chimney. It's functional, not luxurious.
+
+Ancillary Buildings: A few smaller, essential structures around it: a basic storage shed, a water collection point, and perhaps a rudimentary watchtower.
+
+Defenses: Simple palisade walls or fences partially enclose the settlement, hinting at the need for protection.
+
+Background: The environment should be both beautiful and menacing:
+
+Biome: Choose a striking biome – maybe a rugged mountain range with a hint of snow, a dense, ancient forest with strange flora, or a windswept, alien desert with unusual rock formations. The key is that it looks untamed and full of both resources and danger.
+
+Sky: A dramatic sky, perhaps a setting sun casting long shadows, or a stormy sky with a break of light, symbolizing hope amidst adversity. A faint, distant, unusual celestial body (like a second moon or a nebula) could add a touch of sci-fi/fantasy.
+
+Lighting: The scene should be lit to create a sense of both warmth and vulnerability. Golden hour lighting often works well to achieve this – soft light illuminating the colony, with deeper shadows in the untamed wilderness.
+
+UI Elements (Overlaying the Visuals):
+
+Game Title: Prominently displayed at the top center, in a sturdy, slightly weathered font that fits the theme. Think strong, clear, perhaps with a subtle texture of wood or stone.
+
+Example Font Style: Something akin to "Ironwood" or a blocky, hand-carved look.
+
+Main Menu Options: Centered below the title or slightly to the left, arranged vertically. These should be clear, easy to read, and have a rustic, functional button design (e.g., carved wood, distressed metal).
+
+New Game
+
+Load Game
+
+Options
+
+Credits
+
+Exit
+
+Small Details:
+
+Version Number: Discreetly placed in a corner (e.g., bottom right).
+
+Developer Logo: A small, tasteful logo, possibly bottom left.
+
+Overall Mood:
+
+Resilience and Hope: Despite the challenges, the colony is thriving, and the colonists are determined.
+
+Vastness and Mystery: The untamed world outside the colony is immense and holds secrets.
+
+Survival and Strategy: The visual elements subtly communicate the core gameplay loops.
