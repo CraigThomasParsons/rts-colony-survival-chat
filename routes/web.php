@@ -55,9 +55,7 @@ Route::view("/control-panel", "control-panel")
     ->name("control-panel")
     ->middleware("auth");
 
-Route::get("/settings", function () {
-    return "<h1>Settings</h1><p>Placeholder for game settings.</p>";
-})->name("settings");
+Route::view("/settings", "settings")->name("settings");
 
 // Map generator index.
 Route::get("/Map", [MapController::class, "index"])->name("map.index");
@@ -96,10 +94,6 @@ Route::get("/Map/load/{mapId}/", [MapController::class, "runMapLoad"]);
 
 //'as'=>'mapgen.load',
 Route::get("/Map/save/{mapId}/", [MapController::class, "saveMongoToMysql"]);
-
-Route::view("dashboard", "dashboard")
-    ->middleware(["auth", "verified"])
-    ->name("dashboard");
 
 Route::view("profile", "profile")
     ->middleware(["auth"])

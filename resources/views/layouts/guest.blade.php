@@ -8,23 +8,54 @@
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <!-- Materialize + App Scripts -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" integrity="sha512-1m0RsmYf7v1jFZp09wDJF60p0ISjGH8GMWz3KBGM7rCNRLtLwBEmp6kAMPx/+4vOB0fOkH1hpV2Q0Qp8+4d0Bw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+        <style>
+            body {
+                font-family: 'Figtree', sans-serif;
+            }
+            body.theme-dark {
+                background: linear-gradient(180deg, rgba(6,11,25,0.95), rgba(3,3,12,0.9)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
+                color: #f4f6ff;
+            }
+            body.theme-light {
+                background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(219,233,255,0.85)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
+                color: #1f2937;
+            }
+        </style>
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div>
-                <a href="/" wire:navigate>
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
-            </div>
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+    <body class="theme-dark">
+        <div class="valign-wrapper" style="min-height:100vh;">
+            <div class="container">
+                <div class="row">
+                    <div class="col s12 m10 l6 offset-m1 offset-l3">
+                        <div class="card" style="border-radius:24px; background: rgba(15,18,36,0.92); box-shadow:0 25px 70px rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.05);">
+                            <div class="card-content">
+                                {{ $slot }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <script>
+            (function () {
+                const body = document.body;
+                const stored = localStorage.getItem('ff-theme');
+                const mode = stored === 'light' ? 'light' : 'dark';
+                body.classList.remove('theme-dark', 'theme-light');
+                body.classList.add(mode === 'light' ? 'theme-light' : 'theme-dark');
+                body.dataset.mode = mode;
+            })();
+        </script>
+        @livewireScripts
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" integrity="sha512-Cj2aqk8VnKXuX4nHCqB6f+GO6zkRgZNpmjDoE7YQDdyCjTiMQuuLHfoalGoVYLRNvKcJste19h9Up7ZK9C1w4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     </body>
 </html>

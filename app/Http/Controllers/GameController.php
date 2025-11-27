@@ -33,9 +33,11 @@ class GameController extends Controller
 
         // Create an empty Map record that will be filled by the background generator steps.
         $map = Map::create([
-            "game_id" => $game->id,
-            "width" => $validated["width"],
-            "height" => $validated["height"],
+            "name" => "{$validated['name']} Map",
+            "description" => "Queued for generation (seed pending)",
+            "coordinateX" => $validated["width"],
+            "coordinateY" => $validated["height"],
+            "mapstatuses_id" => null,
         ]);
 
         // Redirect the user to a simple map generation page where they can enter a seed.

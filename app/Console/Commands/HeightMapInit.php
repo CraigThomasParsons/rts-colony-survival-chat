@@ -11,7 +11,8 @@ class HeightMapInit extends Command {
      *
      * @var string
      */
-    protected $name = 'map:1init';
+    // Modern Laravel console signature: define arguments/options here
+    protected $signature = 'map:1init {mapId : The Map Id to initialize}';
 
     /**
      * The console command description.
@@ -35,7 +36,7 @@ class HeightMapInit extends Command {
      *
      * @return mixed
      */
-    public function fire()
+    public function handle()
     {
         if (!defined('BASEDIR')) {
             define('BASEDIR', dirname(__FILE__).'/../../');
@@ -43,7 +44,8 @@ class HeightMapInit extends Command {
 
         $mapId = $this->argument('mapId');
 
-        $controller = new MapController();
+        // Use the HTTP MapController to execute the first step
+        $controller = new \App\Http\Controllers\MapController();
         $controller->runFirstStep($mapId);
 
         $this->info("Created Map(".$mapId.") Heightmap. Completed map cell generation process.");
@@ -54,12 +56,7 @@ class HeightMapInit extends Command {
      *
      * @return array
      */
-    // protected function getArguments()
-    // {
-    //     return array(
-    //         array('mapId', InputArgument::REQUIRED, 'The Map Id.'),
-    //     );
-    // }
+    // Legacy getArguments() not needed when using $signature
 
     /**
      * Get the console command options.

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -10,6 +11,11 @@ Route::middleware('guest')->group(function () {
 
     Volt::route('login', 'pages.auth.login')
         ->name('login');
+
+    // Fallback traditional POST login route to support non-Livewire submissions
+    // This prevents 405 errors if the browser or extensions trigger a native form POST.
+    Route::post('login', [LoginController::class, 'postLogin'])
+        ->name('login.post');
 
     Volt::route('forgot-password', 'pages.auth.forgot-password')
         ->name('password.request');

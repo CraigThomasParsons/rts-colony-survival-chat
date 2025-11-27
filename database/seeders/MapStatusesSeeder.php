@@ -34,9 +34,9 @@ class MapStatusesSeeder extends Seeder
             ]);
         }
 
-        if (MapStatus::firstWhere('name', MapStatus::CELL_PROCESSING_STOPPED) === null ) {
+        if (MapStatus::firstWhere('name', MapStatus::CELL_PROCESSING_FINNISHED) === null ) {
             DB::table('map_statuses')->insert([
-                'name' => MapStatus::CELL_PROCESSING_STOPPED,
+                'name' => MapStatus::CELL_PROCESSING_FINNISHED,
                 'description' => 'Cell processing completed.',
                 'created_at' => $nowish->format('Y-m-d H:i:s'),
                 'updated_at' => $nowish->format('Y-m-d H:i:s')

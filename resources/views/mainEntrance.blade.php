@@ -8,10 +8,38 @@
         @import url(//fonts.googleapis.com/css?family=Lato:700);
 
         body {
-            margin:0;
-            font-family:'Lato', sans-serif;
-            text-align:center;
-            color: #999;
+            margin: 0;
+            font-family: 'Lato', sans-serif;
+            text-align: center;
+            color: #cdd7ff;
+            background: linear-gradient(180deg, rgba(6,11,25,0.95), rgba(3,3,12,0.9)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(219,233,255,0.85)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
+            color: #1f2937;
+        }
+
+        .title-container {
+            width: 100%;
+            max-width: 480px;
+            margin: auto;
+            padding: 24px;
+            background: rgba(14, 17, 35, 0.92);
+            border-radius: 24px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: background-color 0.2s ease;
+        }
+
+        body.light-mode .title-container {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 45px rgba(15, 23, 42, 0.15);
         }
 
         .welcome {
@@ -25,13 +53,13 @@
         }
 
         /* Main menu: vertical pill-style menu */
-        nav.main-menu {
+        .main-menu {
             margin-top: 16px;
             display: flex;
             justify-content: center;
         }
 
-        nav.main-menu ul {
+        .main-menu ul {
             list-style: none;
             padding: 0;
             margin: 0;
@@ -43,13 +71,13 @@
         }
 
         /* Each list item uses full-width pill link */
-        nav.main-menu ul li {
+        .main-menu ul li {
             display: block;
             width: 100%;
         }
 
         /* Pill link style */
-        nav.main-menu ul li a {
+        .main-menu ul li a {
             display: block;
             width: 100%;
             box-sizing: border-box;
@@ -64,22 +92,32 @@
             transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
         }
 
-        nav.main-menu ul li a:hover {
+        .main-menu ul li a:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 18px rgba(2,6,23,0.45);
             background: linear-gradient(180deg, #0b1220 0%, #0d1726 100%);
         }
 
-        nav.main-menu ul li a:active {
+        .main-menu ul li a:active {
             transform: translateY(0);
             box-shadow: 0 3px 6px rgba(2,6,23,0.35);
         }
 
         /* Secondary (less prominent) links can use a lighter pill - add class="secondary" to the anchor */
-        nav.main-menu ul li a.secondary {
+        .main-menu ul li a.secondary {
             background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
             color: #ffffff;
             font-weight: 600;
+        }
+
+        body.light-mode .main-menu ul li a {
+            background: linear-gradient(180deg, #f0f4ff 0%, #dbe4ff 100%);
+            color: #0f172a;
+            box-shadow: 0 4px 8px rgba(15, 23, 42, 0.2);
+        }
+
+        body.light-mode .main-menu ul li a:hover {
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.2);
         }
 
         a, a:visited {
@@ -101,8 +139,6 @@
 
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"/> -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"/>
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
@@ -111,10 +147,10 @@
     <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-    <body>
+    <body data-mode="dark">
         <div class="title-container">
             <h1>Feudal Frontiers</h1>
-            <nav class="main-menu">
+            <div class="main-menu">
                 <ul>
                     <li><a href="{{ route('game.new') }}">New Game</a></li>
 
@@ -124,14 +160,28 @@
                         {{-- Assuming an 'isAdmin' method or property on the User model --}}
                         @if(Auth::user()->isAdmin())
                             <li><a href="{{ route('control-panel') }}">Control Panel</a></li>
-
-                            <li><a href="{{ route('logout') }}">Logout</a></li>
                         @endif
                     @endauth
 
                     <li><a href="{{ route('settings') }}">Settings</a></li>
                 </ul>
-            </nav>
+            </div>
         </div>
+
+        <script>
+            const body = document.body;
+            function setMode(mode) {
+                if (mode === 'light') {
+                    body.classList.add('light-mode');
+                    body.dataset.mode = 'light';
+                } else {
+                    body.classList.remove('light-mode');
+                    body.dataset.mode = 'dark';
+                }
+                localStorage.setItem('ff-theme', mode);
+            }
+            const stored = localStorage.getItem('ff-theme');
+            setMode(stored === 'light' ? 'light' : 'dark');
+        </script>
     </body>
 </html>

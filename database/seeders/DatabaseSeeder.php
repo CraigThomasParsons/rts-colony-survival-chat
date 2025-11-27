@@ -5,10 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\StatusSeeder;
-use Illuminate\Database\TileTypeSeeder;
-use Illuminate\Database\MapStatusesSeeder;
-use Illuminate\Database\MapSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TileTypeSeeder::class,
             MapStatusesSeeder::class,
             MapSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

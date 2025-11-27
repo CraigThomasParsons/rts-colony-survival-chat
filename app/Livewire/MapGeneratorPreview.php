@@ -38,14 +38,14 @@ class MapGeneratorPreview extends Component
     public ?int $lastSeed = null;
 
     /**
-     * Palette used by the Blade view (symbol + tailwind class).
+     * Palette metadata for the Blade view (label + CSS class for each tile).
      */
     public array $palette = [
-        'water'  => ['symbol' => '~', 'class' => 'text-sky-400'],
-        'sand'   => ['symbol' => '.', 'class' => 'text-amber-400'],
-        'grass'  => ['symbol' => ',', 'class' => 'text-green-400'],
-        'forest' => ['symbol' => 'T', 'class' => 'text-emerald-500'],
-        'hill'   => ['symbol' => '^', 'class' => 'text-stone-400'],
+        'water'  => ['label' => 'Water', 'class' => 'tile-water'],
+        'sand'   => ['label' => 'Sand', 'class' => 'tile-sand'],
+        'grass'  => ['label' => 'Grass', 'class' => 'tile-grass'],
+        'forest' => ['label' => 'Forest', 'class' => 'tile-forest'],
+        'hill'   => ['label' => 'Hill', 'class' => 'tile-hill'],
     ];
 
     /**
