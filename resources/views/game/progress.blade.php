@@ -35,6 +35,7 @@
             <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
                 <button id="pauseBtn" class="btn btn-muted" style="padding:0.4rem 0.7rem;">Pause</button>
                 <button id="clearBtn" class="btn btn-muted" style="padding:0.4rem 0.7rem;">Clear</button>
+                <button id="copyBtn" class="btn btn-muted" style="padding:0.4rem 0.7rem;">Copy to Clipboard</button>
                 <button id="downloadBtn" class="btn btn-primary" style="padding:0.4rem 0.7rem;">Download</button>
                 <button id="reconnectBtn" class="btn btn-primary" style="padding:0.4rem 0.7rem;">Reconnect</button>
             </div>
@@ -63,6 +64,7 @@
     const lineCountEl = document.getElementById('lineCount');
     const pauseBtn = document.getElementById('pauseBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const reconnectBtn = document.getElementById('reconnectBtn');
     const autoScrollEl = document.getElementById('autoScroll');
@@ -252,6 +254,47 @@
             a.remove();
             URL.revokeObjectURL(url);
         });
+    });
+
+    copyBtn.addEventListener('click', function () {
+        const text = Array.from(logEl.childNodes).map(n => n.textContent).join("\n");
+        
+        if (!text || text.trim().length === 0) {
+            copyBtn.textContent = 'Nothing to copy';
+            setTimeout(() => copyBtn.textContent = 'Copy to Clipboard', 1200);
+            return;
+        }
+
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                const original = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => copyBtn.textContent = original, 1200);
+            }).catch(() => {
+                copyBtn.textContent = 'Copy failed';
+                setTimeout(() => copyBtn.textContent = 'Copy to Clipboard', 1500);
+            });
+        } else {
+            // Fallback for older browsers
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                const original = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => copyBtn.textContent = original, 1200);
+            } catch (e) {
+                copyBtn.textContent = 'Copy failed';
+                setTimeout(() => copyBtn.textContent = 'Copy to Clipboard', 1500);
+            }
+            document.body.removeChild(ta);
+        }
     });
 
     // Start streaming when page loads

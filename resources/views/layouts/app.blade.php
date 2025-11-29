@@ -25,6 +25,28 @@
                 background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(219,233,255,0.85)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
                 color: #1f2937;
             }
+            /* Navbar styling */
+            .topnav {
+                backdrop-filter: blur(6px);
+                background: linear-gradient(0deg, rgba(12,14,22,0.92) 0%, rgba(10,12,18,0.92) 100%);
+                border-bottom: 1px solid rgba(255,215,0,0.22);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            }
+            .topnav .title {
+                color: #f4f1e6;
+                text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+            }
+            .topnav .link {
+                color: #d6d9ff;
+                transition: color 0.2s ease;
+            }
+            .topnav .link:hover {
+                color: #ffffff;
+            }
+            .topnav .avatar {
+                border: 1px solid rgba(255,215,0,0.28);
+                box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            }
         </style>
     </head>
     <body class="font-sans antialiased theme-dark">

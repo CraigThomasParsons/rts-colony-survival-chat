@@ -152,11 +152,19 @@ class GameController extends Controller
      */
     public function mapGenProgressStream($mapId)
     {
+        // Keep PHP alive indefinitely for long-running SSE
+        @set_time_limit(0);
+        // Prevent Laravel from buffering output
+        if (function_exists('apache_setenv')) {
+            @apache_setenv('no-gzip', '1');
+        }
+
         $logFile = storage_path("logs/mapgen-{$mapId}.log");
 
         return new \Symfony\Component\HttpFoundation\StreamedResponse(
             function () use ($logFile) {
                 $lastSize = 0;
+                $lastHeartbeat = time();
 
                 // Send a comment to establish the SSE connection
                 echo ": connected\n\n";
@@ -192,8 +200,16 @@ class GameController extends Controller
                         }
                     }
 
+                    // Heartbeat to keep proxies and client alive (comment line in SSE)
+                    if (time() - $lastHeartbeat >= 15) {
+                        echo ": ping\n\n";
+                        @ob_flush();
+                        @flush();
+                        $lastHeartbeat = time();
+                    }
+
                     // Brief sleep to avoid busy loop
-                    sleep(1);
+                    usleep(200_000); // 200ms
                 }
             },
             200,
@@ -202,6 +218,8 @@ class GameController extends Controller
                 "Cache-Control" => "no-cache",
                 // Disable buffering on some proxies
                 "X-Accel-Buffering" => "no",
+                // Explicitly disable Nginx/fastcgi buffering when honored
+                "X-Content-Type-Options" => "nosniff",
             ],
         );
     }

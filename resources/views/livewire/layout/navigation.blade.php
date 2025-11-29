@@ -16,55 +16,52 @@ new class extends Component {
 };
 ?>
 
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+<nav x-data="{ open: false }" class="topnav">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('control-panel') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                    </a>
-                </div>
+            <div class="flex items-center gap-4">
+                <!-- Site Title (replaces logo) -->
+                <a href="{{ route('control-panel') }}" wire:navigate class="title text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    RTS Colony Survival
+                </a>
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <!-- Primary Links -->
+                <div class="hidden space-x-8 sm:-my-px sm:flex">
                     <x-nav-link :href="route('control-panel')" :active="request()->routeIs('control-panel')" wire:navigate>
                         {{ __('Control Panel') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('game.load')" :active="request()->routeIs('game.load')" wire:navigate>
+                        {{ __('Load Games') }}
                     </x-nav-link>
                 </div>
             </div>
 
-            <!-- Settings Dropdown -->
+            <!-- Top-right Auth / Profile -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            @php $authUser = auth()->user(); @endphp
-                            <div x-data="{{ json_encode(['name' => $authUser ? $authUser->name : 'Guest']) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
+                @php $authUser = auth()->user(); @endphp
+                @if (!$authUser)
+                    <!-- Login button when logged out -->
+                    <a href="{{ route('login') }}" wire:navigate class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-white" style="background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%); border: 1px solid rgba(255,255,255,0.08);">
+                        {{ __('Log in') }}
+                    </a>
+                @else
+                    <!-- Profile avatar with hover info -->
+                    <div class="relative group">
+                        <a href="{{ route('profile') }}" wire:navigate class="inline-flex items-center gap-2">
+                            <span class="text-sm" style="color: #d6d9ff;">{{ $authUser->name }}</span>
+                            <img src="{{ $authUser->avatar_url ?? asset('images/avatar-default.png') }}" alt="avatar" class="avatar h-8 w-8 rounded-full" />
+                        </a>
+                        <div class="absolute right-0 mt-2 w-56 z-50 hidden group-hover:block rounded-md shadow-lg p-3" style="background: linear-gradient(180deg,#0f1424 0%, #0b1020 100%); border: 1px solid rgba(255,215,0,0.18);">
+                            <div class="text-sm font-semibold" style="color: #f3f4f6;">{{ $authUser->name }}</div>
+                            <div class="text-xs" style="color: #9ca3af;">{{ $authUser->email }}</div>
+                            <div class="mt-2 flex gap-2">
+                                <a href="{{ route('profile') }}" wire:navigate class="text-xs px-2 py-1 rounded" style="background: #111827; color: #e5e7eb; border: 1px solid rgba(255,215,0,0.18);">{{ __('Profile') }}</a>
+                                <button wire:click="logout" class="text-xs px-2 py-1 rounded text-white" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">{{ __('Log Out') }}</button>
                             </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile')" wire:navigate>
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <button wire:click="logout" class="w-full text-start">
-                            <x-dropdown-link>
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </button>
-                    </x-slot>
-                </x-dropdown>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Hamburger -->

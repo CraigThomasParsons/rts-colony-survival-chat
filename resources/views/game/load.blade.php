@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Load Game</title>
+    <link rel="stylesheet" href="{{ asset('css/panel.css') }}">
     <style>
         :root { color-scheme: dark; }
         * { box-sizing: border-box; }

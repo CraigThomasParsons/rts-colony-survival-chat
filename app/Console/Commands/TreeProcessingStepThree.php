@@ -34,9 +34,9 @@ class TreeProcessingStepThree extends Command
 
         $mapRecord = MapRepository::findFirst($mapId);
         $tiles = MapRepository::findAllTiles($mapId);
-        $treeCells = MapRepository::findAllTreeCells($mapId);
+        $cells = MapRepository::findAllCells($mapId);
 
-        $mapLoader = new MapHelper($mapRecord->id, $tiles, $treeCells);
+        $mapLoader = new MapHelper($mapRecord->id, $tiles, $cells);
         
         $this->info("Running hole puncher...");
         $mapLoader->holePuncher($mapId);
