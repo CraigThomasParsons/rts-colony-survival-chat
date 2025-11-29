@@ -1,7 +1,7 @@
 <?php
 namespace App\Helpers\Processing;
 
-use Generator\helpers\ModelHelpers\Tile;
+use App\Models\Tile;
 
 /**
  * Todos:

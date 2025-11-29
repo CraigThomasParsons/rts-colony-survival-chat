@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Map extends Model
 {
@@ -18,4 +19,12 @@ class Map extends Model
      * @var array
      */
     protected $fillable = ['name', 'description', 'coordinateX', 'coordinateY', 'mapstatuses_id'];
+
+    /**
+     * Games associated with this map (many-to-many).
+     */
+    public function games(): BelongsToMany
+    {
+        return $this->belongsToMany(Game::class, 'game_map');
+    }
 }

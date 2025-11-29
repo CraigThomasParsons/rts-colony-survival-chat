@@ -9,6 +9,7 @@ use App\Jobs\RunMapGenerationStep;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Redirect;
+use Yajra\DataTables\DataTables;
 
 class GameController extends Controller
 {
@@ -40,6 +41,13 @@ class GameController extends Controller
             "mapstatuses_id" => null,
         ]);
 
+        // Attach the map to the game via pivot (many-to-many)
+        try {
+            $game->maps()->attach($map->id);
+        } catch (\Throwable $e) {
+            // ignore if duplicate, relation may already exist
+        }
+
         // Redirect the user to a simple map generation page where they can enter a seed.
         // The form will POST to GameController::mapGenStart to trigger background artisan steps.
         return Redirect::route("game.mapgen.form", ["mapId" => $map->id])->with(
@@ -67,7 +75,8 @@ class GameController extends Controller
 
     /**
      * Start the map generation artisan commands in the background for the given map.
-     * Commands are executed in sequence in a single background shell so steps run one after another.
+     * Commands are executed in sequence using Laravel job chains.
+     * Each step processes a different aspect of map generation.
      *
      * @param Request $request
      * @param int $mapId
@@ -77,6 +86,7 @@ class GameController extends Controller
     {
         $validated = $request->validate([
             "seed" => "nullable|integer",
+            "mountainLine" => "nullable|integer|min:50|max:255",
         ]);
 
         $map = Map::findOrFail($mapId);
@@ -87,12 +97,22 @@ class GameController extends Controller
             $map->save();
         }
 
-        // Map generation commands that accept a map id as an argument.
+        // Complete map generation pipeline with all steps:
+        // 1. Height map initialization and cell generation
+        // 2. Tile processing based on cell data
+        // 3a-3c. Tree processing (3 steps with Conway's Game of Life)
+        // 4. Water tile processing
+        // 5. Mountain ridge processing
+        $mountainLine = $validated["mountainLine"] ?? 150;
+        
         $steps = [
-            "map:1init",
-            "map:2firststep-tiles",
-            "map:3mountain",
-            "map:4water",
+            "map:1init",              // Step 1: Height map and cells
+            "map:2firststep-tiles",   // Step 2: Tile processing
+            "map:3tree-step1",        // Step 3a: First tree algorithm
+            "map:3tree-step2",        // Step 3b: Second tree algorithm
+            "map:3tree-step3",        // Step 3c: Final tree algorithm
+            "map:4water",             // Step 4: Water processing
+            "map:5mountain",          // Step 5: Mountain ridges
         ];
 
         // Build job instances for each step. Run them as a chain so they execute sequentially.
@@ -109,7 +129,7 @@ class GameController extends Controller
             "mapId" => $map->id,
         ])->with(
             "status",
-            "Map generation queued. Open progress page to watch logs.",
+            "Map generation queued (7 steps). Open progress page to watch logs.",
         );
     }
 
@@ -184,5 +204,40 @@ class GameController extends Controller
                 "X-Accel-Buffering" => "no",
             ],
         );
+    }
+
+    /**
+     * Load page: list existing games with their maps.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function loadList()
+    {
+        // Fetch games with their maps via many-to-many relation
+        $games = Game::with('maps')->orderByDesc('created_at')->get();
+
+        return view('game.load', [ 'games' => $games ]);
+    }
+
+    /**
+     * Standalone page showing a game's maps in a DataTable.
+     */
+    public function mapsTable(Game $game)
+    {
+        return view('game.maps', ['game' => $game]);
+    }
+
+    /**
+     * JSON data for a game's maps DataTable.
+     */
+    public function mapsTableData(Game $game)
+    {
+        $maps = $game->maps()->select(['map.id', 'map.name', 'map.description', 'map.coordinateX', 'map.coordinateY', 'map.created_at'])->get();
+        return DataTables::of($maps)
+            ->addColumn('actions', function ($map) {
+                return '<a class="btn btn-primary" href="'.url('/Map/load/'.$map->id.'/').'">Load</a>';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
     }
 }

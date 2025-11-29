@@ -1,0 +1,72 @@
+/* Shared dark panel theme and terminal styles */
+
+/* Base dark background and typography */
+body.theme-dark, body {
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(16,19,31,0.8) 0%, rgba(5,6,10,1) 60%), #0b0e1a;
+  color: #e5e7eb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.panel {
+  width: min(1024px, 100%);
+  margin: 2rem auto;
+  background: rgba(11, 14, 26, 0.95);
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.panel h1, .panel h2, .panel h3 {
+  color: #f3f4f6;
+  margin: 0 0 0.75rem 0;
+}
+
+.panel .muted { color: #9ca3af; }
+.panel .btn { display:inline-flex; align-items:center; border-radius:10px; padding:0.5rem 0.9rem; font-size:0.9rem; text-decoration:none; transition:all .2s ease; }
+.panel .btn-primary { background:#4f46e5; color:#fff; }
+.panel .btn-primary:hover { background:#4338ca; }
+.panel .btn-muted { background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,0.06); }
+.panel .btn-muted:hover { background:#1f2937; }
+
+/* Retro terminal container */
+.terminal {
+  background: #000;
+  color: #d1ffe0;
+  border-radius: 12px;
+  border: 1px solid rgba(0,255,128,0.15);
+  box-shadow: inset 0 0 24px rgba(0,255,128,0.06), 0 10px 40px rgba(0,0,0,0.4);
+  position: relative;
+}
+.terminal::after { /* CRT scanline effect */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,255,128,0.02),
+    rgba(0,255,128,0.02) 2px,
+    rgba(0,0,0,0.15) 2px,
+    rgba(0,0,0,0.15) 3px
+  );
+  pointer-events: none;
+}
+.terminal .log {
+  max-height: 60vh;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  padding: 0.75rem 0.75rem 0.6rem 0.75rem;
+}
+.terminal .log .text-red-400 { color:#fca5a5; }
+.terminal .log .text-yellow-300 { color:#fde68a; }
+.terminal .log .text-green-300 { color:#86efac; }
+
+/* Status grid cards */
+.status-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:1rem; margin-bottom:1rem; }
+.status-card { background:#0f1424; border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:0.75rem; }
+.status-title { font-size:0.75rem; color:#9ca3af; }
+.status-value { margin-top:0.25rem; font-size:0.95rem; font-weight:600; }
+.status-sub { margin-top:0.5rem; font-size:0.72rem; color:#6b7280; }

@@ -1,59 +1,54 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <div class="flex items-start justify-between">
-            <div>
-                <h1 class="text-2xl font-bold">Map Generation Progress — Map #{{ $mapId }}</h1>
-                <p class="text-sm text-gray-600 mt-1">
-                    Streaming log: <code class="bg-gray-100 px-1 rounded">storage/logs/mapgen-{{ $mapId }}.log</code>
-                </p>
-            </div>
+<link rel="stylesheet" href="{{ asset('css/panel.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/typeit@8.8.3/dist/typeit.min.js" defer></script>
 
-            <div class="text-right space-y-2">
-                <a href="{{ url('/Map/load/'.$mapId.'/') }}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">Open Map View</a>
-                <a href="{{ route('main.entrance') }}" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 text-sm">Main Menu</a>
+<div class="panel">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;">
+        <div>
+            <h1>Map Generation Progress — Map #{{ $mapId }}</h1>
+            <div class="muted" style="font-size:0.85rem;">
+                Streaming log: <code>storage/logs/mapgen-{{ $mapId }}.log</code>
             </div>
         </div>
 
-        <hr class="my-4">
+        <div style="text-align:right; display:flex; gap:0.5rem;">
+            <a href="{{ url('/Map/load/'.$mapId.'/') }}" class="btn btn-primary">Open Map View</a>
+            <a href="{{ route('control-panel') }}" class="btn btn-muted">Control Panel</a>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div class="col-span-1 bg-gray-50 p-3 rounded">
-                <div class="text-xs text-gray-500">Connection</div>
-                <div id="connStatus" class="mt-1 text-sm font-medium">Connecting…</div>
-                <div class="text-xs text-gray-400 mt-2" id="lastUpdate">Last update: —</div>
+    <div class="status-grid">
+        <div class="status-card">
+            <div class="status-title">Connection</div>
+            <div id="connStatus" class="status-value">Connecting…</div>
+            <div id="lastUpdate" class="status-sub">Last update: —</div>
+        </div>
+        <div class="status-card">
+            <div class="status-title">Current Step</div>
+            <div id="currentStep" class="status-value">—</div>
+            <div id="lineCount" class="status-sub">Lines: 0</div>
+        </div>
+        <div class="status-card" style="display:flex; flex-direction:column;">
+            <div class="status-title">Controls</div>
+            <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button id="pauseBtn" class="btn btn-muted" style="padding:0.4rem 0.7rem;">Pause</button>
+                <button id="clearBtn" class="btn btn-muted" style="padding:0.4rem 0.7rem;">Clear</button>
+                <button id="downloadBtn" class="btn btn-primary" style="padding:0.4rem 0.7rem;">Download</button>
+                <button id="reconnectBtn" class="btn btn-primary" style="padding:0.4rem 0.7rem;">Reconnect</button>
             </div>
-
-            <div class="col-span-1 bg-gray-50 p-3 rounded">
-                <div class="text-xs text-gray-500">Current Step</div>
-                <div id="currentStep" class="mt-1 text-sm font-medium">—</div>
-                <div class="text-xs text-gray-400 mt-2" id="lineCount">Lines: 0</div>
-            </div>
-
-            <div class="col-span-1 bg-gray-50 p-3 rounded flex flex-col">
-                <div class="text-xs text-gray-500">Controls</div>
-
-                <div class="mt-2 flex space-x-2">
-                    <button id="pauseBtn" class="px-3 py-2 bg-yellow-400 rounded text-sm">Pause</button>
-                    <button id="clearBtn" class="px-3 py-2 bg-gray-200 rounded text-sm">Clear</button>
-                    <button id="downloadBtn" class="px-3 py-2 bg-green-600 text-white rounded text-sm">Download</button>
-                    <button id="reconnectBtn" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">Reconnect</button>
-                </div>
-
-                <div class="mt-3 text-xs text-gray-500">
-                    Auto-scroll:
-                    <label class="inline-flex items-center ml-2">
-                        <input id="autoScroll" type="checkbox" checked class="form-checkbox" />
-                    </label>
-                </div>
+            <div class="status-sub" style="margin-top:0.5rem;">
+                Auto-scroll:
+                <label style="display:inline-flex; align-items:center; margin-left:0.4rem;">
+                    <input id="autoScroll" type="checkbox" checked />
+                </label>
             </div>
         </div>
+    </div>
 
-        <div class="bg-black text-white rounded p-2">
-            <pre id="log" class="whitespace-pre-wrap max-h-[60vh] overflow-y-auto text-sm leading-tight font-mono"></pre>
-        </div>
+    <div class="terminal">
+        <div id="log" class="log"></div>
     </div>
 </div>
 
@@ -78,6 +73,23 @@
     let buffer = [];
     let reconnectAttempts = 0;
 
+    // TypeIt setup
+    let typer = null;
+    function initTyper() {
+        if (typer || !window.TypeIt) return;
+        try {
+            typer = new TypeIt('#log', {
+                speed: 28,
+                cursor: true,
+                lifeLike: true,
+                waitUntilVisible: false,
+            }).go();
+        } catch(e) { /* noop */ }
+    }
+    // initialize once DOM is ready and script is loaded
+    document.addEventListener('DOMContentLoaded', initTyper);
+    window.addEventListener('load', initTyper);
+
     function setStatus(text, cls) {
         connStatusEl.textContent = text;
         connStatusEl.className = cls ? cls + " mt-1 text-sm font-medium" : "mt-1 text-sm font-medium";
@@ -87,15 +99,28 @@
         lineCount++;
         lineCountEl.textContent = 'Lines: ' + lineCount;
 
-        const node = document.createElement('div');
-        node.textContent = line;
-        if (metaClass) node.classList.add(metaClass);
-
-        logEl.appendChild(node);
-
-        if (autoScrollEl.checked) {
-            logEl.scrollTop = logEl.scrollHeight;
+        // Fallback if TypeIt is not yet loaded
+        if (!typer) {
+            initTyper();
+            const node = document.createElement('div');
+            node.textContent = line;
+            if (metaClass) node.classList.add(metaClass);
+            logEl.appendChild(node);
+            if (autoScrollEl.checked) {
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+            return;
         }
+
+        // Ensure styling consistency via spans
+        const safeLine = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const prefix = metaClass ? `<span class="${metaClass}">` : '';
+        const suffix = metaClass ? `</span>` : '';
+        // Queue typing of the line with a newline
+        typer
+            .type(prefix + safeLine + suffix)
+            .break()
+            .exec(() => { if (autoScrollEl.checked) { logEl.scrollTop = logEl.scrollHeight; } });
     }
 
     function detectStep(line) {
@@ -124,12 +149,12 @@
             es = null;
         }
 
-        setStatus('Connecting…', 'text-gray-700');
+    setStatus('Connecting…');
         es = new EventSource(sseUrl);
 
         es.onopen = function () {
             reconnectAttempts = 0;
-            setStatus('Connected', 'text-green-600');
+            setStatus('Connected');
         };
 
         es.onmessage = function (evt) {
@@ -148,7 +173,7 @@
         };
 
         es.onerror = function (err) {
-            setStatus('Disconnected — attempting reconnect', 'text-red-500');
+            setStatus('Disconnected — attempting reconnect');
             // automatic reconnect handled by EventSource, but attempt full reconnect if many failures
             reconnectAttempts++;
             if (reconnectAttempts > 5) {
@@ -163,8 +188,11 @@
     pauseBtn.addEventListener('click', function () {
         paused = !paused;
         pauseBtn.textContent = paused ? 'Resume' : 'Pause';
-        pauseBtn.classList.toggle('bg-yellow-400', paused);
-        pauseBtn.classList.toggle('bg-green-600', !paused);
+        if (typer) {
+            try {
+                if (paused) typer.pause(); else typer.resume();
+            } catch(e) { /* noop */ }
+        }
         if (!paused && buffer.length) {
             buffer.forEach(item => appendLine(item.line, item.cls));
             buffer = [];
@@ -173,6 +201,16 @@
 
     clearBtn.addEventListener('click', function () {
         logEl.innerHTML = '';
+        if (typer) { try { typer.destroy(); } catch(e) {} }
+        // Recreate typer instance after clear
+        if (window.TypeIt) {
+            typer = new TypeIt('#log', {
+                speed: 30,
+                cursor: true,
+                lifeLike: true,
+                waitUntilVisible: false,
+            }).go();
+        }
         lineCount = 0;
         lineCountEl.textContent = 'Lines: 0';
     });

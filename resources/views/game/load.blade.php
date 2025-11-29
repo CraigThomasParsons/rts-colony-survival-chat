@@ -82,7 +82,7 @@
                     <tr>
                         <th>Game</th>
                         <th>Created</th>
-                        <th>Map</th>
+                        <th>Maps</th>
                         <th style="text-align:right;">Action</th>
                     </tr>
                 </thead>
@@ -95,18 +95,25 @@
                             </td>
                             <td class="muted">{{ $game->created_at ? $game->created_at->format('Y-m-d H:i') : '—' }}</td>
                             <td class="muted">
-                                @if ($game->map)
-                                    {{ $game->map->id }}
+                                @if ($game->maps && $game->maps->count())
+                                    @foreach ($game->maps as $map)
+                                        <span class="tag">Map #{{ $map->id }}</span>@if(!$loop->last), @endif
+                                    @endforeach
                                 @else
-                                    <span class="tag">no map yet</span>
+                                    <span class="tag">no maps yet</span>
                                 @endif
                             </td>
                             <td style="text-align:right;">
-                                @if ($game->map)
-                                    <a class="btn btn-primary" href="{{ url('/Map/load/'.$game->map->id.'/') }}">Load Map</a>
-                                @else
-                                    <a class="btn btn-muted" href="{{ route('game.mapgen.form', ['mapId' => $game->map->id ?? 0]) }}">Generate Map</a>
-                                @endif
+                                <div class="actions" style="justify-content: flex-end;">
+                                    @if ($game->maps && $game->maps->count())
+                                        @foreach ($game->maps as $map)
+                                            <a class="btn btn-primary" href="{{ url('/Map/load/'.$map->id.'/') }}">Load #{{ $map->id }}</a>
+                                        @endforeach
+                                        <a class="btn btn-muted" href="{{ route('game.maps.table', ['game' => $game->id]) }}">Open Maps Table</a>
+                                    @else
+                                        <a class="btn btn-muted" href="{{ route('game.mapgen.form', ['mapId' => 0]) }}">Generate Map</a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach

@@ -103,9 +103,24 @@
           @if (isset($tiles[$y]))
             <tr>
               @for ($x = 0; $x < ($size * 2); $x += 1)
-                <td title="{{$tiles[$y][$x]->mapCoordinateX}},{{$tiles[$y][$x]->mapCoordinateY}}-{{$tiles[$y][$x]->tileTypeId}}" class='@include('mapgen.tiletypeclassname', array('tile' => $tiles[$y][$x]))'>
-                  <div>&nbsp;</div>
-                </td>
+                @php
+                  $tileExists = isset($tiles[$y]) && isset($tiles[$y][$x]) && $tiles[$y][$x] !== null;
+                @endphp
+                @if ($tileExists)
+                  <td title="{{$tiles[$y][$x]->mapCoordinateX}},{{$tiles[$y][$x]->mapCoordinateY}}-{{$tiles[$y][$x]->tileTypeId}}" class='@include('mapgen.tiletypeclassname', array('tile' => $tiles[$y][$x]))'>
+                    <div>&nbsp;</div>
+                  </td>
+                @else
+                  <td class="waterTile">
+                    <div>&nbsp;</div>
+                  </td>
+                @endif
+              @endfor
+            </tr>
+          @else
+            <tr>
+              @for ($x = 0; $x < ($size * 2); $x += 1)
+                <td class="waterTile"><div>&nbsp;</div></td>
               @endfor
             </tr>
           @endif
@@ -117,7 +132,7 @@
           Next Step
         </a>
     @else
-        <a href="{{URL::route('mapgen.step3', '1')}}">
+        <a href="{{ route('mapgen.preview', ['mapId' => request()->route('mapId') ?? 1]) }}">
           Next Step
         </a>
     @endif

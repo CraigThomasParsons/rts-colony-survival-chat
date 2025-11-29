@@ -151,8 +151,34 @@ class MapController extends Controller
             $mapLoader = new MapHelper($mapRecord->id, $tiles, $treeCells);
             $mapLoader->holePuncher($mapId);
         }
-
         $map->setState('Tile creation process completed.');
+    }
+
+    /**
+     * Preview the current map tiles without running processing logic.
+     * Provides a button to proceed to the next step.
+     */
+    public function preview($mapId)
+    {
+        $map = \App\Models\Map::findOrFail($mapId);
+
+        // Build a 2D array of tiles keyed by Y then X
+        $tiles = [];
+        $size = max((int)($map->coordinateX ?? 32), (int)($map->coordinateY ?? 32));
+
+        $allTiles = \App\Models\Tile::where('map_id', $mapId)->get();
+        foreach ($allTiles as $tile) {
+            $y = (int)($tile->mapCoordinateY ?? 0);
+            $x = (int)($tile->mapCoordinateX ?? 0);
+            $tiles[$y][$x] = $tile;
+        }
+
+        return view('mapgen.preview', [
+            'map' => $map,
+            'tiles' => $tiles,
+            'size' => $size,
+            'nextRoute' => url('/Map/step4/'.$mapId.'/'),
+        ]);
     }
 
     /**

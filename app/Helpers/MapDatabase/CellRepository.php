@@ -40,10 +40,10 @@ class CellRepository
             return $Cell;
         } else {
             // Return a new cell record.
-            return new Cell()
-            ->setMapId(intval($mapId))
-            ->setCoordinateX(intval($coordinateX))
-            ->setCoordinateY(intval($coordinateY));
+            return (new Cell())
+                ->setMapId(intval($mapId))
+                ->setCoordinateX(intval($coordinateX))
+                ->setCoordinateY(intval($coordinateY));
         }
     }
 

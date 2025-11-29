@@ -25,6 +25,7 @@ class TreeProcessing
 
     protected $mapLoader;
     protected $arrPossibleTreeTiles;
+    protected $arrLifeGrid;
     protected $patternChoice;
     protected $iterations;
     protected $boolInvertSave;

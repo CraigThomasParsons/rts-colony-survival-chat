@@ -89,10 +89,10 @@ class TileRepository
             //return new Tile();
         } else {
             // Return a new cell record.
-            return new Tile()
-            ->setMapId(intval($mapId))
-            ->setMapCoordinateX(intval($mapCoordinateX))
-            ->setMapCoordinateY(intval($mapCoordinateY));
+            return (new Tile())
+                ->setMapId(intval($mapId))
+                ->setMapCoordinateX(intval($mapCoordinateX))
+                ->setMapCoordinateY(intval($mapCoordinateY));
         }
     }
 }

@@ -48,8 +48,8 @@ Route::get("/game/{game}/view", [GameController::class, "view"])->name(
 );
 
 Route::get("/load-game", function () {
-    return view("game.load");
-})->name("game.load");
+    return app(\App\Http\Controllers\GameController::class)->loadList();
+})->middleware('auth')->name("game.load");
 
 Route::view("/control-panel", "control-panel")
     ->name("control-panel")
@@ -69,7 +69,12 @@ Route::get("/Map/step2/{mapId}/", [MapController::class, "runSecondStep"]);
 
 // Tree Steps.
 //'mapgen.step3',
-Route::get("/Map/step3/{mapId}/", [MapController::class, "runThirdStep"]);
+Route::get("/Map/step3/{mapId}/", [MapController::class, "runThirdStep"])->name('mapgen.step3');
+Route::get("/Map/preview/{mapId}/", [MapController::class, "preview"])->name('mapgen.preview');
+
+// Game maps DataTables views
+Route::get('/game/{game}/maps', [GameController::class, 'mapsTable'])->name('game.maps.table');
+Route::get('/api/game/{game}/maps', [GameController::class, 'mapsTableData'])->name('api.game.maps');
 
 //'as'=>'mapgen.treeStepSecond',
 Route::get("/Map/treeStep2/{mapId}/", [MapController::class, "runTreeStepTwo"]);

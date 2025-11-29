@@ -33,5 +33,11 @@ php artisan route:cache
 
 echo "✅ Setup complete! Starting PHP-FPM..."
 
+# Ensure PHP-FPM listens on 0.0.0.0:9000 for Nginx fastcgi_pass
+if grep -q "^listen = 127.0.0.1:9000" /usr/local/etc/php-fpm.d/www.conf 2>/dev/null; then
+    echo "🔧 Adjusting php-fpm listen address to 9000 (all interfaces)"
+    sed -i 's/^listen = 127.0.0.1:9000/listen = 9000/' /usr/local/etc/php-fpm.d/www.conf || true
+fi
+
 # Start PHP-FPM
 exec php-fpm

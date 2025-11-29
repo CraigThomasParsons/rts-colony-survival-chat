@@ -132,6 +132,23 @@ services:
             - '8026:8025'
         networks:
             - rtschatnet
+    phpmyadmin:
+        image: 'phpmyadmin:latest'
+        container_name: rtschat-phpmyadmin
+        restart: always
+        ports:
+            - '8084:80'
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+            PMA_USER: root
+            PMA_PASSWORD: secret
+            UPLOAD_LIMIT: 100M
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - rtschatnet
 volumes:
     mysqldata: null
     sail-mysql:

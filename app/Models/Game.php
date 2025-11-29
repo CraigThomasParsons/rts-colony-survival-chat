@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * App\Models\Game
@@ -32,11 +32,11 @@ class Game extends Model
     protected $guarded = [];
 
     /**
-     * Get the map associated with the game.
+     * Maps associated with the game (many-to-many).
      */
-    public function map(): HasOne
+    public function maps(): BelongsToMany
     {
-        return $this->hasOne(Map::class);
+        return $this->belongsToMany(Map::class, 'game_map');
     }
 
     /**

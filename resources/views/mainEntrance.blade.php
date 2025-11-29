@@ -21,7 +21,7 @@
         }
 
         body.light-mode {
-            background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(219,233,255,0.85)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
+            background: url('{{ asset('images/login-bg.png') }}') center/cover fixed;
             color: #1f2937;
         }
 
