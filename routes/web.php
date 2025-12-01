@@ -4,6 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameViewController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MapController;
+// Livewire game screen route: wrap component in a blade view to avoid invalid route action
+// Livewire Game Screen Component
+// Correct namespace for Livewire components (App\Livewire\..., not App\Http\Livewire)
+use App\Livewire\GameScreen as LivewireGameScreen;
+
+Route::get('/feudal-frontiers', LivewireGameScreen::class)->name('game.screen');
 
 Route::get("/", function () {
     return view("mainEntrance");
@@ -16,9 +22,9 @@ Route::get("/new-game", function () {
     ->middleware("auth")
     ->name("game.new");
 
-Route::post("/game", [GameController::class, "create"])
-    ->middleware("auth")
-    ->name("game.create");
+// Game index & creation
+Route::get('/game', [GameController::class, 'index'])->middleware('auth')->name('game.index');
+Route::post('/game', [GameController::class, 'create'])->middleware('auth')->name('game.create');
 
 Route::get("/game/{mapId}/mapgen", [GameController::class, "mapGenForm"])
     ->middleware("auth")
@@ -70,6 +76,12 @@ Route::view("/settings", "settings")->name("settings");
 
 // Map generator index.
 Route::get("/Map", [MapController::class, "index"])->name("map.index");
+
+// Consolidated generate endpoint: POST to create map and immediately kick off step1
+Route::post('/Map/generate', [MapController::class, 'generateAndStepOne'])->name('map.generate');
+
+// Map generation editor hub
+Route::get('/Map/editor/{mapId}/', [MapController::class, 'editor'])->name('map.editor');
 
 // Map generating steps.
 // 'as'=>'mapgen.step1',
@@ -135,3 +147,16 @@ Route::get("/dev/qa", function () {
 });
 
 require __DIR__ . "/auth.php";
+
+// Diagnostic route: lists registered application routes (excluding vendor + debug itself)
+Route::get('/route-debug', function() {
+    $routes = collect(Route::getRoutes())->map(function($r){
+        return [
+            'method' => implode('|', $r->methods()),
+            'uri' => $r->uri(),
+            'name' => $r->getName(),
+            'action' => $r->getActionName(),
+        ];
+    })->filter(fn($r) => !str_starts_with($r['uri'], 'vendor') && $r['uri'] !== 'route-debug');
+    return response()->json($routes->values());
+})->name('debug.routes');

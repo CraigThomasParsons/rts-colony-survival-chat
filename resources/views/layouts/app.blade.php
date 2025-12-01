@@ -15,7 +15,17 @@
 
         <!-- Materialize + App Scripts -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" integrity="sha512-1m0RsmYf7v1jFZp09wDJF60p0ISjGH8GMWz3KBGM7rCNRLtLwBEmp6kAMPx/+4vOB0fOkH1hpV2Q0Qp8+4d0Bw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        {{-- Conditional Vite inclusion: fall back gracefully if manifest missing in container build --}}
+        @php
+            $hasManifest = file_exists(public_path('build/manifest.json'));
+        @endphp
+        @if($hasManifest)
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @else
+            <!-- Vite manifest missing: using prebuilt assets fallback -->
+            <link rel="stylesheet" href="/build/assets/app-C24ONnXZ.css" />
+            <script defer src="/build/assets/app-CUzlGF_f.js"></script>
+        @endif
         <style>
             body.theme-dark {
                 background: linear-gradient(180deg, rgba(6,11,25,0.95), rgba(3,3,12,0.9)), url('{{ asset('images/login-bg.png') }}') center/cover fixed;
@@ -46,6 +56,9 @@
             .topnav .avatar {
                 border: 1px solid rgba(255,215,0,0.28);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            }
+            [x-cloak] {
+                display: none !important;
             }
         </style>
     </head>

@@ -14,6 +14,18 @@ use Yajra\DataTables\DataTables;
 class GameController extends Controller
 {
     /**
+     * Simple GET endpoint so visiting /game shows a lightweight index
+     * with a create form and existing games list. Avoids MethodNotAllowed
+     * for GET /game which is currently only POST create.
+     */
+    public function index()
+    {
+        $games = Game::with('maps')->orderByDesc('created_at')->limit(25)->get();
+        return view('game.index', [
+            'games' => $games,
+        ]);
+    }
+    /**
      * Create a new game and redirect to the map-generation seed form.
      *
      * @param Request $request
@@ -91,6 +103,12 @@ class GameController extends Controller
 
         $map = Map::findOrFail($mapId);
 
+        // Concurrency guard: refuse to start if already generating.
+        if ($map->is_generating) {
+            return Redirect::route("game.mapgen.progress", ["mapId" => $map->id])
+                ->with("status", "Map generation already in progress for map {$map->id}. No new chain started.");
+        }
+
         // Save the seed on the map record (optional, helps debugging).
         if (isset($validated["seed"]) && $validated["seed"] !== null) {
             $map->seed = $validated["seed"];
@@ -122,7 +140,15 @@ class GameController extends Controller
         }
 
         // Dispatch the chain to the default queue. Workers will run steps in order and append output to the mapgen log.
-        Bus::chain($jobs)->dispatch();
+    // Mark map as generating before dispatching chain.
+    $map->is_generating = true;
+    $map->save();
+
+    // Append a terminal unlock job that clears is_generating.
+    $finalUnlockJob = new \App\Jobs\FinalizeMapGeneration($map->id);
+    $jobs[] = $finalUnlockJob;
+
+    Bus::chain($jobs)->dispatch();
 
         // Redirect the user to the progress page where they can watch log output in real time.
         return Redirect::route("game.mapgen.progress", [

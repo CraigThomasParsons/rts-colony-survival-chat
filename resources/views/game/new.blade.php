@@ -178,10 +178,7 @@
                 </div>
             </div>
 
-            <div>
-                <label for="seed">Seed (optional)</label>
-                <input id="seed" name="seed" type="text" maxlength="32" value="{{ old('seed') }}" />
-            </div>
+            {{-- Removed seed input (unused / non-functional) --}}
 
             <div class="actions">
                 <button type="submit">Create Game</button>
@@ -196,11 +193,11 @@
         <div class="notes">
             <strong>After creating a game:</strong>
             <p>
-                You'll be redirected to the map generator where you can enter a seed and watch each automated generation step. Prefer to tinker manually?
+                You'll be redirected to the map generator to watch each automated generation step. Prefer to tinker manually?
                 The developer Map tools are still available from the control panel.
             </p>
             <p style="font-size: 0.8rem; color: #aeb5ce;">
-                Recommended seeds: random integer or blank for automatic. Width/height guide: 32–128.
+                Width/height guide: 32–128. (Seed removed from UI — generation now auto-randomizes internally.)
             </p>
         </div>
     </div>

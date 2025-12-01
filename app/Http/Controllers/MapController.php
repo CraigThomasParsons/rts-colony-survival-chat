@@ -6,13 +6,16 @@ use App\Models\Map;
 use App\Helpers\MapDatabase\MapRepository;
 use App\Helpers\MapDatabase\MapHelper;
 use App\Helpers\Factories\MapGeneratorFactory;
-use App\Helpers\MapStorage;
+// use App\Helpers\MapStorage; // Commented out: class no longer exists or autoloading issue
 use App\Helpers\Processing\TreeProcessing;
+use App\Helpers\Processing\MountainProcessing;
+use App\Helpers\Processing\WaterProcessing;
+use App\Helpers\MapDatabase\WaterProcessingMapDatabaseLayer;
 use App\Models\MapStatus;
 use App\Helpers\ModelHelpers\Map as MapMemory;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreMapRequest;
-use App\Http\Requests\UpdateMapRequest;
+// use App\Http\Requests\StoreMapRequest; // Removed - request classes not present
+// use App\Http\Requests\UpdateMapRequest; // Removed - request classes not present
 
 
 class MapController extends Controller
@@ -33,6 +36,33 @@ class MapController extends Controller
     }
 
     /**
+     * Map generation editor hub: shows current map state and provides links
+     * to each generation step plus live preview link.
+     */
+    public function editor($mapId)
+    {
+        $map = \App\Models\Map::findOrFail($mapId);
+
+        $state = $map->state ?? 'Unknown';
+        $steps = [
+            ['label' => 'Step 1: Init / Height Map', 'url' => url("/Map/step1/$mapId/"), 'key' => 'step1'],
+            ['label' => 'Step 2: Tiles From Cells', 'url' => url("/Map/step2/$mapId/"), 'key' => 'step2'],
+            ['label' => 'Step 3: Trees First Pass', 'url' => route('mapgen.step3', ['mapId' => $mapId]), 'key' => 'step3'],
+            ['label' => 'Preview Tiles', 'url' => route('mapgen.preview', ['mapId' => $mapId]), 'key' => 'preview'],
+            ['label' => 'Step 4: Water Processing', 'url' => url("/Map/step4/$mapId/"), 'key' => 'step4'],
+            ['label' => 'Step 5: Mountain Processing', 'url' => url("/Map/step5/$mapId/400"), 'key' => 'step5'],
+        ];
+
+        return view('mapgen.editor', [
+            'map' => $map,
+            'mapId' => $mapId,
+            'state' => $state,
+            'steps' => $steps,
+            'isGenerating' => $map->is_generating ?? false,
+        ]);
+    }
+
+    /**
      * Should run the height map generator and set up the basic cells.
      * I need to rewrite the MapGenerator to use MongDb to temporarily store
      * data.
@@ -46,8 +76,13 @@ class MapController extends Controller
         $map  = MapRepository::findFirst($mapId);
         $size = SELF::DEFAULT_HEIGHT_MAP_SIZE;
 
+        // If map not found, create a new Map model directly (MapStorage helper unavailable)
         if ($map == false) {
-            $map = new MapStorage();
+            $map = new Map();
+            $map->name = 'Map '.date('Ymd-His');
+            $map->description = 'Auto-created (fallback)';
+            $map->coordinateX = $size;
+            $map->coordinateY = $size;
         }
 
         $map->setState(MapStatus::CELL_PROCESSING_STARTED);
@@ -75,9 +110,10 @@ class MapController extends Controller
         $mapGenerator->runGenerator();
 
         $map->setState(MapStatus::CELL_PROCESSING_FINNISHED);
-
-        // Save the map record.
         $map->save();
+
+        // After step 1 redirect to editor hub for this map.
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
     }
 
     /**
@@ -152,6 +188,8 @@ class MapController extends Controller
             $mapLoader->holePuncher($mapId);
         }
         $map->setState('Tile creation process completed.');
+        $map->save();
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
     }
 
     /**
@@ -239,6 +277,7 @@ class MapController extends Controller
             }
         }
         $mapLoader->killAllTreesInCell($mapId);
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
     }
 
     /**
@@ -317,6 +356,7 @@ class MapController extends Controller
                 $tile->save();
             }
         }
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
     }
 
 
@@ -337,6 +377,8 @@ class MapController extends Controller
         // All the tiles in the current map.
         $tiles     = MapRepository::findAllTiles($mapId);
         $treeCells = MapRepository::findAllTreeCells($mapId);
+        // Missing previously: need cells collection for mapping tile->cell
+        $cells     = MapRepository::findAllCells($mapId);
 
         $mapLoader = new MapHelper($mapRecord->id, $tiles, $treeCells);
         $mapLoader->holePuncher($mapId);
@@ -389,6 +431,7 @@ class MapController extends Controller
                 $tile->save();
             }
         }
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
     }
 
     /**
@@ -437,7 +480,7 @@ class MapController extends Controller
         $waterTileLocations = MapRepository::findAllWaterTileCoordinates($mapId);
 
         // Initializing dependencies.
-        $waterProcessingMongoDatabaseLayer = new WaterProcessingMongoDatabaseLayer($mapId);
+        $waterProcessingMongoDatabaseLayer = new WaterProcessingMapDatabaseLayer($mapId);
         $waterProcessingMongoDatabaseLayer->setMapId($mapId);
 
         $mapMemory = new MapMemory();
@@ -453,6 +496,7 @@ class MapController extends Controller
         //echo "Going to run third step on MapId" . $mapId;
         //return Redirect::to('/Map/load/' . $mapId);
         $WaterProcessor->waterTiles();
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
     }
 
     /**
@@ -491,6 +535,59 @@ class MapController extends Controller
         }
 
         // In the future I want to create four maps and stitch them together using WaveFunctionCollapse.
+        return redirect()->route('map.editor', ['mapId' => $mapId]);
+    }
+
+    /**
+     * Create a new Map record (basic defaults) and immediately redirect to step1 processing.
+     */
+    public function generateAndStepOne(Request $request)
+    {
+        $width = (int) $request->input('width', self::DEFAULT_HEIGHT_MAP_SIZE);
+        $height = (int) $request->input('height', self::DEFAULT_HEIGHT_MAP_SIZE);
+
+        // Create basic map row.
+        $map = new Map();
+        $map->name = 'Map '.date('Ymd-His');
+        $map->description = 'Auto-generated';
+        $map->coordinateX = $width;
+        $map->coordinateY = $height;
+        $map->save();
+
+        return redirect()->to("/Map/step1/{$map->id}/");
+    }
+
+    /**
+     * Lightweight JSON status endpoint used by the map editor polling logic.
+     * Returns current state string, is_generating boolean, and inferred nextRoute if available.
+     */
+    public function status($mapId)
+    {
+        $map = Map::find($mapId);
+        if (!$map) {
+            return response()->json(['error' => 'Map not found'], 404);
+        }
+
+        $state = $map->state ?? 'Unknown';
+        $mapping = [
+            MapStatus::CREATED_EMPTY => url("/Map/step1/{$mapId}/"),
+            MapStatus::CELL_PROCESSING_STARTED => url("/Map/step1/{$mapId}/"),
+            MapStatus::CELL_PROCESSING_FINNISHED => url("/Map/step2/{$mapId}/"),
+            MapStatus::TILE_PROCESSING_STARTED => url("/Map/step2/{$mapId}/"),
+            MapStatus::TILE_PROCESSING_STOPPED => route('mapgen.step3', ['mapId' => $mapId]),
+            MapStatus::TREE_FIRST_STEP => url("/Map/treeStep2/{$mapId}/"),
+            MapStatus::TREE_2ND_COMPLETED => url("/Map/treeStep3/{$mapId}/"),
+            MapStatus::TREE_3RD_STARTED => url("/Map/step4/{$mapId}/"),
+            MapStatus::TREE_GEN_COMPLETED => url("/Map/step4/{$mapId}/"),
+        ];
+        $nextRoute = $mapping[$state] ?? null;
+
+        return response()->json([
+            'mapId' => $mapId,
+            'state' => $state,
+            'is_generating' => (bool) ($map->is_generating ?? false),
+            'nextRoute' => $nextRoute,
+        ]);
     }
 
     /**
@@ -504,7 +601,7 @@ class MapController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMapRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -530,7 +627,7 @@ class MapController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMapRequest $request, Map $map)
+    public function update(Request $request, Map $map)
     {
         //
     }

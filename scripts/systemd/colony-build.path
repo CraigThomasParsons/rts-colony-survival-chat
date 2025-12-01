@@ -1,0 +1,22 @@
+[Unit]
+Description=Watch repo files that require docker rebuild
+
+[Path]
+# Docker and compose files
+PathChanged=/home/craigpar/Code/rts-colony-chat/Dockerfile
+PathChanged=/home/craigpar/Code/rts-colony-chat/Dockerfile-queue
+PathChanged=/home/craigpar/Code/rts-colony-chat/Dockerfile-scheduler
+PathChanged=/home/craigpar/Code/rts-colony-chat/docker-compose.yml
+
+# Dependency manifests likely requiring rebuild
+PathChanged=/home/craigpar/Code/rts-colony-chat/composer.json
+PathChanged=/home/craigpar/Code/rts-colony-chat/composer.lock
+PathChanged=/home/craigpar/Code/rts-colony-chat/package.json
+PathChanged=/home/craigpar/Code/rts-colony-chat/package-lock.json
+PathChanged=/home/craigpar/Code/rts-colony-chat/vite.config.js
+
+# Trigger service
+Unit=colony-build.service
+
+[Install]
+WantedBy=default.target

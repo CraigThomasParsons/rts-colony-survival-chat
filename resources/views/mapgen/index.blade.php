@@ -108,7 +108,7 @@
     <div class="panel">
         <h1>Map Generator Preview</h1>
         <p class="subtitle">
-            Tune your seed and dimensions, watch the surface render tile-by-tile, and get ready to swap in a sprite sheet later.
+            Tune your dimensions, watch the surface render tile-by-tile, and get ready to swap in a sprite sheet later. (Seed controls removed; engine auto-randomizes.)
         </p>
 
         <div class="livewire-wrapper">

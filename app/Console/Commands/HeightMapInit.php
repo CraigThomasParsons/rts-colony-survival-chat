@@ -44,6 +44,22 @@ class HeightMapInit extends Command {
 
         $mapId = $this->argument('mapId');
 
+        // Concurrency / re-run guard: do not re-initialize if map already initialized or generation locked.
+        $map = \App\Models\Map::find($mapId);
+        if ($map) {
+            // If the map already has any cells generated previously we assume init ran.
+            // Simpler heuristic: if is_generating flag set OR description mentions queued completion OR status set, skip.
+            if (property_exists($map, 'is_generating') && $map->is_generating) {
+                $this->warn("Map {$mapId} is already generating. Skipping re-init.");
+                return Command::SUCCESS;
+            }
+            // If there is a status id we treat init as already completed (prevents wiping data).
+            if (!is_null($map->mapstatuses_id)) {
+                $this->warn("Map {$mapId} already initialized (mapstatuses_id present). Skipping re-init.");
+                return Command::SUCCESS;
+            }
+        }
+
         // Use the HTTP MapController to execute the first step
         $controller = new \App\Http\Controllers\MapController();
         $controller->runFirstStep($mapId);

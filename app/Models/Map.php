@@ -20,6 +20,11 @@ class Map extends Model
      */
     protected $fillable = ['name', 'description', 'coordinateX', 'coordinateY', 'mapstatuses_id'];
 
+    // Allow mass assignment of is_generating lock flag
+    protected $casts = [
+        'is_generating' => 'boolean',
+    ];
+
     /**
      * Games associated with this map (many-to-many).
      */

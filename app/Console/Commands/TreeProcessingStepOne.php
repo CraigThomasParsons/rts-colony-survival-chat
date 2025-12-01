@@ -36,6 +36,19 @@ class TreeProcessingStepOne extends Command
         $tiles = MapRepository::findAllTiles($mapId);
         $allCells = MapRepository::findAllCells($mapId);
 
+        // Ensure previous step (tiles processed) completed before starting tree step 1.
+        if ($map->mapstatuses_id === null) {
+            $this->error("Aborting: tile processing not marked completed yet for map {$mapId}.");
+            return self::FAILURE;
+        }
+
+        // Check if cells exist (they might have been deleted by a concurrent map:1init)
+        if ($allCells === false || empty($allCells)) {
+            $this->error("No cells found for map {$mapId}. Map data may have been reset by another process.");
+            $this->error("Please avoid clicking 'Generate Map' multiple times simultaneously.");
+            return self::FAILURE;
+        }
+
         // Tree creation started.
         $map->setState(MapStatus::TREE_FIRST_STEP);
         $map->set('nextStep', "treeStepSecond");

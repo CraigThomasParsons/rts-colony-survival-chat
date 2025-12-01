@@ -37,6 +37,19 @@ class TreeProcessingStepTwo extends Command
         $tiles = MapRepository::findAllTiles($mapId);
         $treeCells = MapRepository::findAllTreeCells($mapId);
 
+        // Require tree step 1 completion state before proceeding.
+        if ($map->mapstatuses_id === null) {
+            $this->error("Aborting: tree step 1 state missing for map {$mapId}.");
+            return self::FAILURE;
+        }
+
+        // Check if cells exist (they might have been deleted by a concurrent map:1init)
+        if ($cells === false || empty($cells)) {
+            $this->error("No cells found for map {$mapId}. Map data may have been reset by another process.");
+            $this->error("Please avoid clicking 'Generate Map' multiple times simultaneously.");
+            return self::FAILURE;
+        }
+
         $mapLoader = new MapHelper($mapRecord->id, $tiles, $cells);
         
         $this->info("Running hole puncher...");

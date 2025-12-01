@@ -163,7 +163,7 @@
         <div>
             <h1>Map Generation — Map #{{ $map->id }}</h1>
             <p class="subtitle">
-                Supply a seed and kick off the automated generation pipeline. We’ll queue artisan steps and stream logs on the next page.
+                Kick off the automated generation pipeline (seed now auto-randomized). We’ll queue artisan steps and stream logs on the next page.
             </p>
         </div>
 
@@ -192,18 +192,7 @@
             <form method="POST" action="{{ route('game.mapgen.start', ['mapId' => $map->id]) }}" style="display:flex; flex-direction:column; gap:1.5rem;">
                 @csrf
 
-                <div>
-                    <label for="seed">Seed (optional)</label>
-                    <input id="seed" name="seed" type="number" inputmode="numeric"
-                           value="{{ old('seed', $map->seed ?? '') }}"
-                           placeholder="Leave blank for random" />
-                    <small style="color:#9ea9ca; display:block; margin-top:0.4rem;">
-                        Tip: numeric seeds produce deterministic layouts. Try tiny values (1, 42) or a full random integer when experimenting.
-                    </small>
-                    @error('seed')
-                        <p style="color:#fecaca; font-size:0.85rem; margin-top:0.35rem;">{{ $message }}</p>
-                    @enderror
-                </div>
+                {{-- Seed input removed (non-functional) --}}
 
                 <div style="display:flex; flex-wrap:wrap; gap:0.8rem;">
                     <button type="submit" class="primary">Start Map Generation</button>

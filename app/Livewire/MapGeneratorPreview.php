@@ -68,34 +68,29 @@ class MapGeneratorPreview extends Component
     /**
      * Generate a preview based on the current width/height/seed inputs.
      */
-    public function generate(): void
+    public function generate(): \Illuminate\Http\RedirectResponse
     {
+        // Instead of an in-place preview, create a new map record and redirect to step1.
         $this->validate();
 
-        $seedValue = $this->seed !== ''
-            ? $this->stringToSeed($this->seed)
-            : null;
+        $map = new \App\Models\Map();
+        $map->name = 'Map '.date('Ymd-His');
+        $map->description = 'Auto-generated via Preview Generate';
+        $map->coordinateX = $this->width;
+        $map->coordinateY = $this->height;
+        $map->save();
 
-        $generator = new SurfacePreviewGenerator(
-            $this->width,
-            $this->height,
-            $seedValue,
-        );
-
-        $result = $generator->generate();
-
-        $this->grid = $result['grid'];
-        $this->counts = $result['counts'];
-        $this->lastSeed = $result['meta']['seed'];
+        // Redirect the browser to runFirstStep route for this new map.
+        return redirect()->to("/Map/step1/{$map->id}/");
     }
 
     /**
      * Generate a preview with a fresh random seed.
      */
-    public function generateRandom(): void
+    public function generateRandom(): \Illuminate\Http\RedirectResponse
     {
-        $this->seed = (string) random_int(1, PHP_INT_MAX);
-        $this->generate();
+        // Random just delegates to generate with current dimensions.
+        return $this->generate();
     }
 
     /**

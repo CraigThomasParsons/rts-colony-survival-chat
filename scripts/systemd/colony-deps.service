@@ -1,0 +1,9 @@
+[Unit]
+Description=Install/update PHP & JS dependencies (composer/npm) inside docker compose
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/craigpar/Code/rts-colony-chat
+# Uncomment if using rootless docker
+# Environment=DOCKER_HOST=unix:///run/user/%U/docker.sock
+ExecStart=/usr/bin/bash /home/craigpar/Code/rts-colony-chat/scripts/systemd/run-deps.sh

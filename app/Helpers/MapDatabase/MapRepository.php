@@ -150,7 +150,8 @@ class MapRepository
     {
         $query = DB::table('tile')
             ->where('map_id', '=', intval($mapId))
-            ->where('tileTypeId', '=', 3);
+            // Column name in schema is tileType_id, not tileTypeId
+            ->where('tileType_id', '=', 3);
 
         $arrTile = $query->get();
 
@@ -183,7 +184,8 @@ class MapRepository
     {
         $query = DB::table('tile')
             ->where('map_id', '=', intval($mapId))
-            ->where('tileTypeId', '=', 3);
+            // Column name in schema is tileType_id, not tileTypeId
+            ->where('tileType_id', '=', 3);
         $arrTile = $query->get();
 
         $coordinatesWaterTiles = array();
@@ -191,7 +193,8 @@ class MapRepository
         if (count($arrTile) > 0) {
             // This call $query->get() returns an array.
             foreach ($arrTile as $key => $arrValues) {
-                $coordinatesWaterTiles[$arrValues['mapCoordinateX']][$arrValues['mapCoordinateY']] = 1;
+                // $arrValues is a stdClass; access with ->property
+                $coordinatesWaterTiles[$arrValues->mapCoordinateX][$arrValues->mapCoordinateY] = 1;
             }
 
             // Return the tile coordinates that was returned from the database.
