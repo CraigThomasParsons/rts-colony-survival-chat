@@ -1,11 +1,9 @@
 <?php
 namespace App\Helpers\MapDatabase;
 
-use Illuminate\Support\Facades\DB;
-use App\Helpers\MapDatabase\Cell;
-use App\Helpers\MapDatabase\Tile;
 use App\Helpers\MapDatabase\MapRepository;
-use Generator\helpers\ModelHelpers\Tile as TileHelper;
+use App\Helpers\ModelHelpers\Tile as TileHelper;
+
 /**
  * Store helper functions here for fetching data from the Map database related to Water Processing.
  */
@@ -26,7 +24,7 @@ class WaterProcessingMapDatabaseLayer
 
         foreach ($tiles as $tileRow) {
             foreach ($tileRow as $tile) {
-            	// Instantiating the helper.
+                // Instantiating the helper.
                 $helper = new TileHelper($tile->mapCoordinateX, $tile->mapCoordinateY);
 
                 // Populate the helper data with the Mapdb.

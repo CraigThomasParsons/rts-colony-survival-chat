@@ -17,9 +17,9 @@ class FinalizeMapGeneration implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $mapId;
+    public string $mapId;
 
-    public function __construct(int $mapId)
+    public function __construct(string $mapId)
     {
         $this->mapId = $mapId;
     }

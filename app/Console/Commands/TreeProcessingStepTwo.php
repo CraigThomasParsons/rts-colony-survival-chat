@@ -56,8 +56,9 @@ class TreeProcessingStepTwo extends Command
         $mapLoader->holePuncher($mapId);
 
         // Tree creation started.
-        $map->setState(MapStatus::TREE_2ND_COMPLETED);
-        $map->save();
+    $map->mapstatuses_id = MapStatus::firstWhere('name', MapStatus::TREE_2ND_COMPLETED)?->id;
+    $map->state = MapStatus::TREE_2ND_COMPLETED;
+    $map->save();
 
         // Using this to process the tiles we need and start the work of randomizing tree tiles.
         $treeProcessing = new TreeProcessing($mapLoader);

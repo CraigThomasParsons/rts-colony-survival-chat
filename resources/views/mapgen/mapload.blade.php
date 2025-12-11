@@ -128,7 +128,7 @@
       </table>
     <div>
     @if (isset($next))
-            <a href="{{URL::route($next, '1')}}">
+            <a href="{{URL::route($next, ['mapId' => request()->route('mapId')])}}">
           Next Step
         </a>
     @else

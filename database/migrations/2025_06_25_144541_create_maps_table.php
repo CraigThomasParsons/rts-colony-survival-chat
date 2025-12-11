@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('map', function (Blueprint $table) {
-            $table->integer('id', true);
+            $table->uuid('id')->primary();
             $table->string('name', 32);
             $table->string('description', 128);
             $table->integer('coordinateX');

@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Map Generation Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Default dimensions for newly generated maps (in cells).
+    |
+    */
+
+    'map_default_width' => env('MAP_DEFAULT_WIDTH', 64),
+    'map_default_height' => env('MAP_DEFAULT_HEIGHT', 38),
+
 ];

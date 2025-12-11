@@ -64,7 +64,7 @@
     </head>
     <body class="font-sans antialiased theme-dark">
         <div class="min-h-screen flex flex-col" style="backdrop-filter: blur(2px);">
-            <livewire:layout.navigation />
+            <livewire:navigation-menu />
 
             <!-- Page Heading -->
             @if (isset($header))

@@ -100,28 +100,28 @@ Route::get('/game/{game}/maps', [GameController::class, 'mapsTable'])->name('gam
 Route::get('/api/game/{game}/maps', [GameController::class, 'mapsTableData'])->name('api.game.maps');
 
 //'as'=>'mapgen.treeStepSecond',
-Route::get("/Map/treeStep2/{mapId}/", [MapController::class, "runTreeStepTwo"]);
+Route::get("/Map/treeStep2/{mapId}/", [MapController::class, "runTreeStepTwo"])->name('mapgen.treeStepSecond');
 
 //'as'=>'mapgen.treeStepThird',
 Route::get("/Map/treeStep3/{mapId}/", [
     MapController::class,
     "runTreeStepThree",
-]);
+])->name('mapgen.treeStepThird');
 
 //'as'=>'mapgen.step4',
-Route::get("/Map/step4/{mapId}/", [MapController::class, "runFourthStep"]);
+Route::get("/Map/step4/{mapId}/", [MapController::class, "runFourthStep"])->name('mapgen.step4');
 
 //'as'=>'mapgen.step5',
 Route::get("/Map/step5/{mapId}/{mountainLine}", [
     MapController::class,
     "runLastStep",
-]);
+])->name('mapgen.step5');
 
 //'as'=>'mapgen.load',
-Route::get("/Map/load/{mapId}/", [MapController::class, "runMapLoad"]);
+Route::get("/Map/load/{mapId}/", [MapController::class, "runMapLoad"])->name('mapgen.load');
 
 //'as'=>'mapgen.load',
-Route::get("/Map/save/{mapId}/", [MapController::class, "saveMongoToMysql"]);
+Route::get("/Map/save/{mapId}/", [MapController::class, "saveMongoToMysql"])->name('mapgen.save');
 
 Route::view("profile", "profile")
     ->middleware(["auth"])
@@ -160,3 +160,6 @@ Route::get('/route-debug', function() {
     })->filter(fn($r) => !str_starts_with($r['uri'], 'vendor') && $r['uri'] !== 'route-debug');
     return response()->json($routes->values());
 })->name('debug.routes');
+
+Route::get('/game/{mapId}/heightmap', [App\Http\Controllers\MapHeightmapController::class, 'generate'])->name('map.heightmap');
+Route::get('/game/{mapId}/heightmap-data', [App\Http\Controllers\MapHeightmapController::class, 'data'])->name('map.heightmap.data');

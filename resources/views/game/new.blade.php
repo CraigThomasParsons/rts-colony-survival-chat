@@ -170,11 +170,11 @@
             <div class="grid two">
                 <div>
                     <label for="width">Map Width</label>
-                    <input id="width" name="width" type="number" required min="32" max="128" value="{{ old('width', 64) }}" />
+                    <input id="width" name="width" type="number" required min="32" max="128" value="{{ old('width', config('app.map_default_width', 64)) }}" />
                 </div>
                 <div>
                     <label for="height">Map Height</label>
-                    <input id="height" name="height" type="number" required min="32" max="128" value="{{ old('height', 38) }}" />
+                    <input id="height" name="height" type="number" required min="32" max="128" value="{{ old('height', config('app.map_default_height', 38)) }}" />
                 </div>
             </div>
 

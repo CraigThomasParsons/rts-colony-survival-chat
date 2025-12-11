@@ -1,5 +1,9 @@
 <?php
+
 namespace App\Helpers\MapDatabase;
+
+use App\Models\Map as EloquentMap;
+use App\Models\MapStatus;
 
 /**
  * Represents 1 single square Map of a Rts game's entire world.
@@ -9,90 +13,66 @@ namespace App\Helpers\MapDatabase;
 class Map extends MapModel
 {
     /**
-     * Should Empty all Cells for this map.
-     * Initialize the basic data of 
+     * Initialize a helper-side Map record with sensible defaults.
+     *
+     * @param array $attributes Optional seed values provided by callers/upstream loaders.
      */
-    public function __construct()
+    public function __construct(array $attributes = [])
     {
         parent::__construct();
 
-        // Initial values.
-        $this->data['id'] = 1;
-        $this->data['coordinateX'] = 0;
-        $this->data['coordinateY'] = 0;
-        $this->data['name'] = 'Initial Map';
-        $this->data['description'] = 'Initial Map Description';
-        $this->data['state'] = 'Cell Processing started';
+        // Seed base attributes so downstream processors always have coordinates + name/description.
+        $defaults = [
+            'id' => null,
+            'coordinateX' => 0,
+            'coordinateY' => 0,
+            'name' => 'Initial Map',
+            'description' => 'Initial Map Description',
+        ];
+
+        // Merge defaults with any explicit attributes passed in.
+        foreach (array_merge($defaults, $attributes) as $key => $value) {
+            $this->set($key, $value);
+        }
+
+        // Ensure a known starting state so the UI/status pollers have a defined value.
+        if (!isset($this->data['mapstatuses_id'])) {
+            $this->setState(MapStatus::CREATED_EMPTY);
+        }
     }
 
     /**
-     * I'm not sure if this is going to be needed anymore.
+     * Convenience accessor for the underlying map primary key.
      */
-    // public function emptyTiles()
-    // {
-    // }
-
-    /**
-     * Should Empty all Cells for this map.
-     * I'm not sure if this is going to be needed anymore.
-     */
-    // public function emptyCells()
-    // {
-    // }
-
-    /**
-     * Gets the value of Id.
-     * I was getting the string id back when using this function.
-     * Therefore I'm going to use intval to fix anything coming out of getId.
-     *
-     * @return mixed
-     */
-    public function getId()
+    public function getId(): ?int
     {
-        if (isset($this->data['id'])) {
-            return $this->data['id'];
-        }
-        return false;
+        return isset($this->data['id']) ? (int) $this->data['id'] : null;
     }
 
     /**
-     * Return the Map database id.
-     *
-     * @return MapId This is a MapId Object
+     * Persist the helper payload using the Eloquent Map model.
      */
-    public function getMapId()
+    public function save(): int
     {
-        if (isset($this->data['_id'])) {
-            return $this->data['_id'];
+        // Reuse existing DB row when id is present; otherwise create a new record.
+        $mapRecord = $this->getId()
+            ? EloquentMap::query()->findOrFail($this->getId())
+            : new EloquentMap();
+
+        // Copy helper data onto the Eloquent model for persistence.
+        $payload = $this->data ?? [];
+
+        if (!is_array($payload)) {
+            $payload = (array) $payload;
+        }
+        $mapRecord->fill($payload);
+        $mapRecord->save();
+
+        // Sync any database-assigned columns (id, timestamps, etc.) back into helper state.
+        foreach ($mapRecord->getAttributes() as $key => $value) {
+            $this->data[$key] = $value;
         }
 
-        return false;
-    }
-
-    /**
-     * Save this record.
-     */
-    public function save()
-    {
-        if ($this->getMapId() == false) {
-            $mapRecord = new TempMap();
-        } else {
-            $mapRecord = TempMap::find($this->getMapId());
-        }
-
-        foreach ($this->data as $key => $value) {
-            $mapRecord->$key = $value;
-        }
-
-        $status = $mapRecord->save();
-
-        if ($status) {
-            foreach ($mapRecord as $key => $value) {
-                $this->data[$key] = $value;
-            }
-            return $this->id;
-        }
-
-        return $status;
+        return (int) $mapRecord->id;
     }
 }

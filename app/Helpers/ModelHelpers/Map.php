@@ -259,7 +259,7 @@ class Map implements \arrayaccess
                 
                 // Don't bother with any tiles that are already initialized.
                 if ($tileRecord->hasId() === false) {
-                    $tileRecord->mapId = intval($this->getMapPrimaryKey());
+                    $tileRecord->mapId = $this->getMapPrimaryKey();
 
                     $tileRecord->coordinateX = $intXaxisOffsetCoord;
                     $tileRecord->coordinateY = $intYaxisOffsetCoord;
@@ -281,12 +281,12 @@ class Map implements \arrayaccess
                     if ($cellRecord->hasId()) {
                         // This is all were going to do if the cell record already existed.
                         $cellId = $cellRecord->getId();
+                    } else {
+                        // Save to make sure we get a cell_id.
+                        $cellId = $cellRecord->save();
                     }
 
-                    // Save to make sure we get a cell_id.
-                    $cellId = $cellRecord->save();
-
-                    if ($cellRecord) {
+                    if ($cellId) {
                         $tileRecord->setCellId($cellId);
                     }
 

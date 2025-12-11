@@ -1,0 +1,42 @@
+This is how the map is supposed to work.
+
+The first step is to implement empty cells.
+There is a fault line heightmap generator.
+How it works is it draws about 100 lines, and which ever array items falls on one side of the map, those height are raised and lowered on the oposite side.
+The lines are randomized.
+
+Then at some point the trees are added using john conways game of life.
+Once the cells are converted to tiles, any cell not compatible with trees, like cliff edges, are overwritten.
+How do I turn a 3d height map into a 2d map?
+
+In cell processing.
+    const DEFAULT_MOUNTAIN_LINE = 156;
+    const UNACCEPTABLE_WATER_COUNT = 235;
+
+Everything above the Mountain_line becomes a mountain.
+Everything below the water line becomes ocean.
+There is a water count, but also a water line that is calculated.
+The water count is just to try to lower the line if the map is filled with too much ocean.
+
+There should be another step but I don't know if I see it yet.
+Its to increase the Mountain_Line once more to create another ridge line.
+
+Can you double check to make sure that this is how the map generation functions?
+Maybe even help optimize it a bit?
+
+Reactivate the noise + tree loops
+
+Most of FaultLine::runGenerator() is commented. Wiring the Perlin noise back in and passing the final $arrMap into processCellsFromHeightMap() will give you the “~100 fault lines” behavior described in map.txt.
+Right now you rely entirely on the MapMemory initialization, so there’s no real height variation.
+Batch DB writes
+
+CellProcessing::processCellsFromHeightMap() persists every cell as it loops. Toggle doNotSaveToDatabaseWhileProcessing() and instead call Cell::save() via a bulk upsert after the pass. Same for runSecondStep, where each tile save() hits MySQL—buffer changes or use update with raw queries to cut runtime.
+Second ridge step
+
+After the current tree phases but before water, call $cellProcessor->setMountainLine($cellProcessor->getMountainLine() + 15) and rerun processMountainCells(). This gives you the “raise line again” effect and uses the stored originalMountainLine to return if needed.
+Height → tile smoothing
+
+When copying cells to tiles in runSecondStep, you can reference the cell height to set tile height and later render shading. Right now height is only set for land tiles, so cliffs don’t get visual cues.
+Expose parameters in UI
+
+Add sliders for waterLevel, mountainLine, and Game of Life iteration counts via the existing editor. That makes it easier to experiment without editing constants.

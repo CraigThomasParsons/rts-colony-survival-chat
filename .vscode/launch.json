@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Listen for Xdebug (App)",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "log": false,
+      "xdebugSettings": {
+        "max_children": 256,
+        "max_data": 1024,
+        "show_hidden": 1
+      },
+      "pathMappings": {
+        "/var/www/html": "${workspaceFolder}"
+      },
+      "ignore": ["**/vendor/**/*.php"],
+      "stopOnEntry": false
+    },
+    {
+      "name": "Listen for Xdebug (Queue Worker)",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "pathMappings": {
+        "/var/www/html": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Listen for Xdebug (Scheduler)",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "pathMappings": {
+        "/var/www/html": "${workspaceFolder}"
+      }
+    }
+  ]
+}

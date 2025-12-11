@@ -3,9 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Helpers\MapDatabase\MapRepository;
+use App\Helpers\MapDatabase\WaterProcessingMapDatabaseLayer;
 use App\Helpers\Processing\WaterProcessing;
 use App\Helpers\ModelHelpers\Map as MapMemory;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Artisan command: map:4water
@@ -17,6 +20,14 @@ class WaterProcessingCommand extends Command
 {
     protected $signature = 'map:4water {mapId : The Map ID to process}';
     protected $description = 'Process water tiles (Step 4)';
+
+    protected Application $app;
+
+    public function __construct(Application $app)
+    {
+        parent::__construct();
+        $this->app = $app;
+    }
 
     public function handle(): int
     {
@@ -50,20 +61,20 @@ class WaterProcessingCommand extends Command
         try {
             $mapMemory = new MapMemory();
             $mapMemory->setDatabaseRecord($map)->setSize($size);
-
-            $WaterProcessor = app(WaterProcessing::class);
             
-            if (method_exists($WaterProcessor, 'setWaterTileLocations')) {
-                $WaterProcessor->setWaterTileLocations($waterTileLocations)
-                    ->setMap($mapMemory);
-                    
-                if (method_exists($WaterProcessor, 'waterTiles')) {
-                    $WaterProcessor->waterTiles();
-                    $this->info("Water processing completed for map {$mapId}.");
-                }
+            $databaseLayer = new WaterProcessingMapDatabaseLayer($mapId);
+            $waterProcessor = new WaterProcessing();
+            $waterProcessor->setWaterProcessingDatabaseLayer($databaseLayer)
+                ->setMap($mapMemory)
+                ->setWaterTileLocations($waterTileLocations);
+
+            if (method_exists($waterProcessor, 'waterTiles')) {
+                $waterProcessor->waterTiles();
+                $this->info("Water processing completed for map {$mapId}.");
             }
         } catch (\Exception $e) {
             $this->error("Water processing failed: " . $e->getMessage());
+            Log::error($e);
             return self::FAILURE;
         }
         

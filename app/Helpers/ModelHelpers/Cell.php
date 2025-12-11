@@ -410,7 +410,7 @@ class Cell
      */
     public function populateCellRecordWithThisData($cellRecord)
     {
-        $cellRecord->map_id      = $this->getMapPrimaryKey();
+    $cellRecord->map_id      = $this->getMapPrimaryKey();
         $cellRecord->coordinateX = $this->getIntXaxisCoordinate();
         $cellRecord->coordinateY = $this->getIntYaxisCoordinate();
         $cellRecord->height      = $this->getIntHeight();

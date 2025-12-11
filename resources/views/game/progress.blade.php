@@ -46,6 +46,30 @@
                 </label>
             </div>
         </div>
+        <div class="status-card">
+            <div class="status-title">Minimaps</div>
+            
+            <div style="display:flex; gap:0.5rem;">
+                <div style="flex:1;">
+                    <div class="status-sub" style="margin-bottom:0.25rem;">Heightmap</div>
+                    <canvas
+                        id="heightmapCanvas"
+                        width="128"
+                        height="128"
+                        style="width:100%; border:1px solid #333; image-rendering: pixelated; background:#000;">
+                    </canvas>
+                </div>
+                <div style="flex:1;">
+                    <div class="status-sub" style="margin-bottom:0.25rem;">Tilemap</div>
+                    <canvas
+                        id="tilemapCanvas"
+                        width="128"
+                        height="128"
+                        style="width:100%; border:1px solid #333; image-rendering: pixelated; background:#000;">
+                    </canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="terminal">
@@ -57,6 +81,7 @@
 (function () {
     const mapId = @json($mapId);
     const sseUrl = "{{ route('game.mapgen.progress.stream', ['mapId' => $mapId]) }}";
+    const heightmapDataUrl = "{{ route('map.heightmap.data', ['mapId' => $mapId]) }}";
     const logEl = document.getElementById('log');
     const connStatusEl = document.getElementById('connStatus');
     const lastUpdateEl = document.getElementById('lastUpdate');
@@ -68,6 +93,10 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const reconnectBtn = document.getElementById('reconnectBtn');
     const autoScrollEl = document.getElementById('autoScroll');
+    const heightmapCanvas = document.getElementById('heightmapCanvas');
+    const heightmapCtx = heightmapCanvas ? heightmapCanvas.getContext('2d') : null;
+    const tilemapCanvas = document.getElementById('tilemapCanvas');
+    const tilemapCtx = tilemapCanvas ? tilemapCanvas.getContext('2d') : null;
 
     let es = null;
     let paused = false;
@@ -143,6 +172,115 @@
         if (l.match(/warning|warn/)) return 'text-yellow-300';
         if (l.match(/completed|finished|success/)) return 'text-green-300';
         return '';
+    }
+
+    async function fetchHeightmapData() {
+        if (!heightmapCtx && !tilemapCtx) return;
+        try {
+            const resp = await fetch(heightmapDataUrl, { cache: 'no-store' });
+            if (!resp.ok) {
+                console.warn('Failed to load heightmap data', resp.status);
+                return;
+            }
+            const data = await resp.json();
+            if (heightmapCtx) drawHeightmap(data);
+            if (tilemapCtx) drawTilemap(data);
+        } catch (e) {
+            console.error('Error fetching heightmap data', e);
+        }
+    }
+
+    function drawHeightmap(data) {
+        if (!data || !Array.isArray(data.grid) || !heightmapCtx) return;
+
+        const grid = data.grid;
+        const h = grid.length;
+        const w = h ? grid[0].length : 0;
+        if (!w || !h) return;
+
+        // Adjust logical canvas size to grid
+        if (heightmapCanvas.width !== w || heightmapCanvas.height !== h) {
+            heightmapCanvas.width = w;
+            heightmapCanvas.height = h;
+        }
+
+        const imgData = heightmapCtx.createImageData(w, h);
+        let idx = 0;
+
+        for (let y = 0; y < h; y++) {
+            const row = grid[y];
+            for (let x = 0; x < w; x++) {
+                const cell = row[x] || { h: 0, type: null };
+                let v = Number(cell.h ?? 0);
+                if (!Number.isFinite(v)) v = 0;
+                v = Math.max(0, Math.min(255, v)); // clamp to [0,255]
+
+                // Simple grayscale based on height
+                const r = v;
+                const g = v;
+                const b = v;
+                const a = 255;
+
+                imgData.data[idx++] = r;
+                imgData.data[idx++] = g;
+                imgData.data[idx++] = b;
+                imgData.data[idx++] = a;
+            }
+        }
+
+        heightmapCtx.putImageData(imgData, 0, 0);
+    }
+
+    function drawTilemap(data) {
+        if (!data || !Array.isArray(data.grid) || !tilemapCtx) return;
+
+        const grid = data.grid;
+        const h = grid.length;
+        const w = h ? grid[0].length : 0;
+        if (!w || !h) return;
+
+        // Adjust logical canvas size to grid
+        if (tilemapCanvas.width !== w || tilemapCanvas.height !== h) {
+            tilemapCanvas.width = w;
+            tilemapCanvas.height = h;
+        }
+
+        const imgData = tilemapCtx.createImageData(w, h);
+        let idx = 0;
+
+        for (let y = 0; y < h; y++) {
+            const row = grid[y];
+            for (let x = 0; x < w; x++) {
+                const cell = row[x] || { h: 0, type: null };
+                const type = (cell.type || '').toLowerCase();
+                
+                let r=0, g=0, b=0;
+                
+                // Simple color mapping
+                if (type.includes('water')) {
+                    r = 0; g = 100; b = 200;
+                } else if (type.includes('tree')) {
+                    r = 34; g = 139; b = 34; // ForestGreen
+                } else if (type.includes('rock') || type.includes('mountain')) {
+                    r = 128; g = 128; b = 128;
+                } else if (type.includes('land')) {
+                    r = 210; g = 180; b = 140; // Tan
+                } else {
+                    // Fallback to grayscale heightmap if type is unknown/null
+                    let v = Number(cell.h ?? 0);
+                    if (!Number.isFinite(v)) v = 0;
+                    v = Math.max(0, Math.min(255, v));
+                    r = v; g = v; b = v;
+                }
+
+                imgData.data[idx++] = r;
+                imgData.data[idx++] = g;
+                imgData.data[idx++] = b;
+                imgData.data[idx++] = 255;
+            }
+        }
+
+        tilemapCtx.putImageData(imgData, 0, 0);
     }
 
     function openStream() {
@@ -299,6 +437,12 @@
 
     // Start streaming when page loads
     openStream();
+
+    // Initial heightmap draw
+    fetchHeightmapData();
+
+    // Optional: refresh every 5s while viewing this page
+    setInterval(fetchHeightmapData, 5000);
 
     // Clean up connection when navigating away
     window.addEventListener('beforeunload', function () {

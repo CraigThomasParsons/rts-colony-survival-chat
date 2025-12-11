@@ -2,6 +2,8 @@ You are running in Codex QA Autopilot Mode.
 
 Repeat the following loop forever unless instructed otherwise:
 
+**Reminder:** the full application stack (queues, mapgen, MySQL) only runs correctly inside Docker Compose. Use `bash .codex/run-tests.sh` or the "Run Codex QA" task so the `app`, `queue`, and `mysql` containers stay in sync. For quick sanity checks without Docker you can run `APP_STORAGE=$(pwd)/storage/testing php artisan test`, which now uses the SQLite test harness described in `docs/testing-sqlite.md`.
+
 1. Read /tmp/codex-report.txt fully.
 2. Extract:
    - queue status

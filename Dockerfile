@@ -7,6 +7,10 @@ RUN apt-get update && apt-get install -y \
     libzip-dev libpng-dev libonig-dev libxml2-dev \
     && docker-php-ext-install pdo_mysql zip
 
+# Install Xdebug (development only) and enable extension
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
 RUN apt-get update && apt-get install -y rsync
 
 # Install Node.js and npm
@@ -21,6 +25,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY docker/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 WORKDIR /var/www/html

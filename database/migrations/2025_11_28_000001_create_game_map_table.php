@@ -9,12 +9,13 @@ return new class extends Migration {
     {
         Schema::create('game_map', function (Blueprint $table) {
             $table->id();
+
             // games.id is unsigned BIGINT
             $table->unsignedBigInteger('game_id');
             $table->foreign('game_id')->references('id')->on('games')->cascadeOnDelete();
 
-            // map.id is INT (not bigIncrements)
-            $table->integer('map_id');
+            // map.id now uses UUIDs
+            $table->uuid('map_id');
             $table->foreign('map_id')->references('id')->on('map')->cascadeOnDelete();
 
             $table->timestamps();

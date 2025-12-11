@@ -71,10 +71,10 @@ class GameController extends Controller
     /**
      * Show a simple map generation form where the user provides a seed.
      *
-     * @param int $mapId
+    * @param string $mapId
      * @return \Illuminate\View\View
      */
-    public function mapGenForm($mapId)
+    public function mapGenForm(string $mapId)
     {
         $map = Map::findOrFail($mapId);
 
@@ -91,13 +91,12 @@ class GameController extends Controller
      * Each step processes a different aspect of map generation.
      *
      * @param Request $request
-     * @param int $mapId
+    * @param string $mapId
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function mapGenStart(Request $request, $mapId)
+    public function mapGenStart(Request $request, string $mapId)
     {
         $validated = $request->validate([
-            "seed" => "nullable|integer",
             "mountainLine" => "nullable|integer|min:50|max:255",
         ]);
 
@@ -109,11 +108,10 @@ class GameController extends Controller
                 ->with("status", "Map generation already in progress for map {$map->id}. No new chain started.");
         }
 
-        // Save the seed on the map record (optional, helps debugging).
-        if (isset($validated["seed"]) && $validated["seed"] !== null) {
-            $map->seed = $validated["seed"];
-            $map->save();
-        }
+        // Keep backend support for explicit seeds but default to UUID when missing.
+    $providedSeed = $request->input('seed');
+    $map->seed = (string) ($providedSeed ?? $map->seed ?? $map->id);
+        $map->save();
 
         // Complete map generation pipeline with all steps:
         // 1. Height map initialization and cell generation
@@ -162,10 +160,10 @@ class GameController extends Controller
     /**
      * Show a progress page that tails the map generation log.
      *
-     * @param int $mapId
+    * @param string $mapId
      * @return \Illuminate\View\View
      */
-    public function mapGenProgress($mapId)
+    public function mapGenProgress(string $mapId)
     {
         return view("game.progress", ["mapId" => $mapId]);
     }
@@ -173,10 +171,10 @@ class GameController extends Controller
     /**
      * Server-Sent Events stream that emits new lines from the map generation log.
      *
-     * @param int $mapId
+    * @param string $mapId
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function mapGenProgressStream($mapId)
+    public function mapGenProgressStream(string $mapId)
     {
         // Keep PHP alive indefinitely for long-running SSE
         @set_time_limit(0);

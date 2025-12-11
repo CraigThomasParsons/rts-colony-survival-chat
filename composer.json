@@ -23,12 +23,15 @@
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",
+    "friendsofphp/php-cs-fixer": "^3.91",
     "kitloong/laravel-migrations-generator": "^7.1",
+    "larastan/larastan": "^3.8",
     "laravel/breeze": "^2.1",
     "laravel/dusk": "^8.3",
     "laravel/pint": "^1.13",
     "laravel/sail": "^1.48",
     "mockery/mockery": "^1.6",
+    "nikic/php-parser": "^5.0",
     "nunomaduro/collision": "^8.0",
     "phpunit/phpunit": "^11.0.1"
   },
@@ -41,7 +44,9 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
+      "Tests\\": "tests/",
+      "PHPStan\\Custom\\": "phpstan/",
+      "PHPStan\\Custom\\Rules\\": "phpstan/Rules/"
     }
   },
   "scripts": {
@@ -59,7 +64,10 @@
       "@php artisan key:generate --ansi",
       "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
       "@php artisan migrate --graceful --ansi"
-    ]
+    ],
+    "graph:index": "@php scripts/dev/graph-index.php",
+    "cs:check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+    "cs:fix": "vendor/bin/php-cs-fixer fix"
   },
   "extra": {
     "laravel": {

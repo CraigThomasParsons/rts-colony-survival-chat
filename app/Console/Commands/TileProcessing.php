@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Helpers\MapDatabase\MapRepository;
 use App\Models\MapStatus;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Artisan command: map:2firststep-tiles
@@ -34,25 +35,52 @@ class TileProcessing extends Command
     public function handle(): int
     {
         $mapId = $this->argument('mapId');
-        
         $this->info("Starting tile processing for map {$mapId}...");
-        
+
         $map = MapRepository::findFirst($mapId);
-        
         if (!$map) {
             $this->error("Map {$mapId} not found.");
             return self::FAILURE;
         }
 
+        // Retry logic
+        $attempts = 0;
+        $maxAttempts = 5;
+        $retryDelay = 2; // seconds
+
+        while ($attempts < $maxAttempts) {
+            $tiles = MapRepository::findAllTilesReversedAxis($mapId);
+            if ($tiles !== false) {
+                break; // Success
+            }
+
+            $attempts++;
+            $this->warn("Tiles not found for map {$mapId}. Retrying in {$retryDelay}s... (Attempt {$attempts}/{$maxAttempts})");
+            sleep($retryDelay);
+        }
+
+        if ($tiles === false) {
+            $errorMsg = "Map {$mapId} cannot be processed: missing tiles from MapRepository::findAllTilesReversedAxis after {$maxAttempts} attempts.";
+            $this->error($errorMsg);
+            Log::error($errorMsg);
+            return self::FAILURE;
+        }
+
         // Tile creation started.
-        $map->setState(MapStatus::TILE_PROCESSING_STARTED);
+        $map->state = MapStatus::TILE_PROCESSING_STARTED;
+        $map->mapstatuses_id = MapStatus::firstWhere('name', MapStatus::TILE_PROCESSING_STARTED)?->id;
         $map->save();
 
         // All the cells in the current Map.
         $cells = MapRepository::findAllCells($mapId);
 
-        // The reversed x and y made it easier to check if a row existed before iterating over it in the view.
-        $tiles = MapRepository::findAllTilesReversedAxis($mapId);
+        if (!is_iterable($cells)) {
+            $errorMsg = "Map {$mapId} cannot be processed: missing cells from MapRepository::findAllCells";
+            $this->error($errorMsg);
+            Log::error($errorMsg);
+            return self::FAILURE;
+        }
+
 
         $tileCount = 0;
         
@@ -97,8 +125,9 @@ class TileProcessing extends Command
             $mapLoader->holePuncher($mapId);
         }
 
-        $map->setState('Tile creation process completed.');
-        $map->save();
+    $map->state = MapStatus::TILE_PROCESSING_STOPPED;
+    $map->mapstatuses_id = MapStatus::firstWhere('name', MapStatus::TILE_PROCESSING_STOPPED)?->id;
+    $map->save();
 
         $this->info("Tile processing completed for map {$mapId}.");
         

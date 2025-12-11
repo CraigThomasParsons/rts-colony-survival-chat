@@ -27,6 +27,8 @@ class CellType extends Model
     // Forrested area, not passible either.
     const TREE = 'Tree';
 
+    const DEFAULT_TYPE_ID = 1;
+
     /**
      * The attributes that are mass assignable.
      *

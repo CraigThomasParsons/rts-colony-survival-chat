@@ -69,7 +69,7 @@ class Cell
      */
     public function hasId()
     {
-        return ((isset($this->data['id']) === true) && ($this->data['id'] > 0));
+        return ((isset($this->data['id']) === true) && !empty($this->data['id']));
     }
 
     /**

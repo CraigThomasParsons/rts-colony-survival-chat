@@ -4,6 +4,7 @@ namespace App\Helpers\Processing;
 use App\Helpers\Database\Cell as CellRecord;
 use App\Helpers\Database\Tile as TileRecord;
 use App\Helpers\Coordinates;
+use Illuminate\Support\Facades\Log;
 
 /**
  * A very simple PHP implementation of John Conway's Game of Life.
@@ -111,8 +112,11 @@ class TreeProcessing
      */
     public function createLifeGrid()
     {
-        if ($this->mapLoader) {
-            $arrSearchTiles = $this->mapLoader->getArrTiles();
+        $arrSearchTiles = $this->mapLoader ? $this->mapLoader->getArrTiles() : [];
+
+        if (empty($arrSearchTiles)) {
+            Log::error('TreeProcessing: Cannot create life grid because arrSearchTiles is empty or invalid.');
+            return $this;
         }
 
         foreach ($arrSearchTiles as $intXaxisCoordinate => $row) {
@@ -166,10 +170,9 @@ class TreeProcessing
         foreach ($arrTiles as $intXaxisCoord => &$row) {
             foreach ($row as $intYaxisCoord => &$tile) {
                 if ($this->invertSave() == true) {
-                    if ($this->arrLifeGrid[$intXaxisCoord][$intYaxisCoord] == self::LIFE) {
+                    if ($this->arrLifeGrid[$intXaxisCoord][$intYaxisCoord] == self::FREE) {
                         $tile->name        = 'Passable Land';
                         $tile->tileTypeId = 1;
-
                     } else {
                         $tile->name        = 'Trees';
                         $tile->tileTypeId = 29;
@@ -374,7 +377,7 @@ class TreeProcessing
      *
      * @param integer $intDeadTreeCountThreshold Defaults, to 8.
      *
-     * @return self
+     *
      */
     public function purgeOrphans($intDeadTreeCountThreshold = 8)
     {

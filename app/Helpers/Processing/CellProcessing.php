@@ -1,5 +1,5 @@
 <?php
-namespace App\helpers\Processing;
+namespace App\Helpers\Processing;
 
 use Generator\helpers\ModelHelpers\Cell;
 use Generator\helpers\ModelHelpers\Tile;
@@ -89,50 +89,6 @@ class CellProcessing
     }
 
     /**
-     * Process Mountain Cells
-     * This processes the Mountain Cells only
-     *
-     * @return void
-     */
-    public function processMountainCells()
-    {
-        foreach ($this->arrMountainCoordinates as $coordinate) {
-
-            $strDescription = '';
-
-            $intXaxisCoordinate = $coordinate->getXAxis();
-            $intYaxisCoordinate = $coordinate->getYAxis();
-
-            // Retreive cell object.
-            $tmpCell = $this->map[$intXaxisCoordinate][$intYaxisCoordinate];
-
-            // Retreive the Height.
-            $decNumHeight = $tmpCell->getIntHeight($decNum);
-
-            if ($decNumHeight > $this->getMountainLine()) {
-
-                // Label the cell as Mountains.
-                $tmpCell->setStrType('Impassable Rocks');
-
-                // Displaying Rocky Mountains, not passable.
-                $strDescription = 'Mountain Cell @ height: ' . $decNum . '; ';
-                $strDescription .= '+Mountain-Count: ' . $mountainCellCount . ';';
-
-                $tmpCell->setStrDescription($strDescription);
-
-                $this->addMountainCoordinate($coordinate, false);
-
-            } else {
-                // Label the cell as Land.
-                $tmpCell->setStrType('Passable Land');
-
-                // Displaying Land.
-                $tmpCell->setStrDescription('Land @ height: ' . $decNum . ';');
-            }
-        }
-    }
-
-    /**
      * Process Cells From a Height Map array
      *
      * @return void
@@ -158,7 +114,7 @@ class CellProcessing
                 $strDescription = '';
 
                 // Retreive cell object.
-                $tmpCell = $this->map[$colKey][$key];
+                $tmpCell = $this->map[$key][$colKey];
 
                 // Grab the first character.
                 $chrFirst = substr($mxdNum, 0, 1);
@@ -171,8 +127,9 @@ class CellProcessing
                     // Will be storing this in the database.
                     $decNum = hexdec($mxdNum);
 
-                    // Record Height.
+                    // Record Height and hex representation.
                     $tmpCell->setIntHeight($decNum);
+                    $tmpCell->setStrHexHeight($strHexNum);
 
                     if ($decNum < $this->getWaterLevel()) {
                         $waterCellCount++;

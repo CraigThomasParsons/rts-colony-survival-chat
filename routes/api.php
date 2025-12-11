@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\GameStateController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\MapAiController;
 
 Route::prefix('game')->group(function () {
     Route::get('initial', [GameStateController::class, 'initial']);
@@ -14,3 +16,6 @@ Route::prefix('game')->group(function () {
 
 // Map status polling endpoint
 Route::get('map/{mapId}/status', [MapController::class, 'status']);
+
+// AI suggestion endpoint
+Route::get('ai/map-suggest/{mapId}', [MapAiController::class, 'suggest']);

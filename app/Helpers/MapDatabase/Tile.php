@@ -14,16 +14,16 @@ class Tile extends MapModel
     /**
      * array of the values I try to store in map model
      *
-     * @var $data
+     * @var array
      */
-    protected $data;
+    protected $data = [];
 
     /**
      * An array of error messages
      *
-     * @var $error
+     * @var array
      */
-    protected $error;
+    protected $error = [];
 
     /**
      * Map Status
@@ -120,7 +120,7 @@ class Tile extends MapModel
      */
     public function hasId()
     {
-        return ((isset($this->data['id']) === true) && ($this->data['id']> 0));
+        return ((isset($this->data['id']) === true) && !empty($this->data['id']));
     }
 
     /**
@@ -140,11 +140,11 @@ class Tile extends MapModel
     /**
      * Sets the value of the cell Id.
      *
-     * @param int $cellId the cell id
+     * @param string $cellId the cell id
      * 
      * @return App\Helpers\MapDatabase\Tile
      */
-    public function setCellId(int $cellId): \App\Helpers\MapDatabase\Tile
+    public function setCellId(string $cellId): \App\Helpers\MapDatabase\Tile
     {
         $this->data['cell_id'] = $cellId;
 
@@ -210,7 +210,7 @@ class Tile extends MapModel
      */
     public function save()
     {
-        if ($this->getMapId() == false) {
+        if (!$this->hasId()) {
             $tileRecord = new TempTile();
         } else {
             $tileRecord = TempTile::find($this->getId());
@@ -474,6 +474,18 @@ class Tile extends MapModel
             
             return $this->$variableName = $value;
         }
+    }
+
+    /**
+     * Magical getter.
+     * If a property isn't defined, check the $data array.
+     */
+    public function __get($variableName)
+    {
+        if (array_key_exists($variableName, $this->data)) {
+            return $this->data[$variableName];
+        }
+        return null;
     }
 
     /**

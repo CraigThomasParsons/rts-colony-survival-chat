@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Control Panel</title>
+    @livewireStyles
     <style>
         :root { color-scheme: dark; }
         * { box-sizing: border-box; }
@@ -46,6 +47,7 @@
     </style>
 </head>
 <body>
+    <livewire:layout.navigation />
     <div class="panel">
         <h1>Admin Control Panel</h1>
         <p>Quick links to developer tooling.</p>
@@ -64,5 +66,6 @@
             <a href="{{ route('main.entrance') }}">Main Menu</a>
         </div>
     </div>
+    @livewireScripts
 </body>
 </html>

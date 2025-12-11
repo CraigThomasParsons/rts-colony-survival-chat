@@ -172,6 +172,9 @@ Each colonist has:
 - Create a feature branch
 - Submit a PR
 - Include test coverage where appropriate
+- Follow the [coding conventions](docs/coding-conventions.md) (readability over brevity)
+- Run `composer cs:check` before pushing and `composer cs:fix` to auto-format.
+- Apply SOLID (especially dependency inversion) by injecting collaborators instead of instantiating them inline—see conventions doc for details.
 
 ⚙️ Systems
 

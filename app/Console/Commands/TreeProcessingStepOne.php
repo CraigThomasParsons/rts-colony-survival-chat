@@ -7,6 +7,7 @@ use App\Helpers\MapDatabase\MapHelper;
 use App\Helpers\Processing\TreeProcessing;
 use App\Models\MapStatus;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Artisan command: map:3tree-step1
@@ -18,6 +19,7 @@ class TreeProcessingStepOne extends Command
 {
     protected $signature = 'map:3tree-step1 {mapId : The Map ID to process}';
     protected $description = 'Run first tree processing algorithm (Step 3a)';
+    protected array $statusCache = [];
 
     public function handle(): int
     {
@@ -27,20 +29,35 @@ class TreeProcessingStepOne extends Command
         $this->info("Starting tree processing step 1 for map {$mapId}...");
         
         $map = MapRepository::findFirst($mapId);
-        
         if (!$map) {
             $this->error("Map {$mapId} not found.");
             return self::FAILURE;
         }
 
-        $tiles = MapRepository::findAllTiles($mapId);
-        $allCells = MapRepository::findAllCells($mapId);
+        // Retry logic
+        $attempts = 0;
+        $maxAttempts = 5;
+        $retryDelay = 3; // seconds
 
-        // Ensure previous step (tiles processed) completed before starting tree step 1.
-        if ($map->mapstatuses_id === null) {
-            $this->error("Aborting: tile processing not marked completed yet for map {$mapId}.");
+        while ($attempts < $maxAttempts) {
+            $tiles = MapRepository::findAllTiles($mapId);
+            if ($tiles !== false) {
+                break; // Success
+            }
+
+            $attempts++;
+            $this->warn("Tiles not found for map {$mapId} in TreeProcessing. Retrying in {$retryDelay}s... (Attempt {$attempts}/{$maxAttempts})");
+            sleep($retryDelay);
+        }
+
+        if ($tiles === false) {
+            $errorMsg = "Map {$mapId} cannot be processed by TreeProcessing: missing tiles after {$maxAttempts} attempts.";
+            $this->error($errorMsg);
+            Log::error($errorMsg);
             return self::FAILURE;
         }
+
+        $allCells = MapRepository::findAllCells($mapId);
 
         // Check if cells exist (they might have been deleted by a concurrent map:1init)
         if ($allCells === false || empty($allCells)) {
@@ -49,10 +66,8 @@ class TreeProcessingStepOne extends Command
             return self::FAILURE;
         }
 
-        // Tree creation started.
-        $map->setState(MapStatus::TREE_FIRST_STEP);
-        $map->set('nextStep', "treeStepSecond");
-        $map->save();
+    // Tree creation started.
+    $this->updateMapStatus($map, MapStatus::TREE_FIRST_STEP, 'treeStepSecond');
 
         $mapRecord = MapRepository::findFirst($mapId);
         $mapLoader = new MapHelper($mapRecord->id, $tiles, $allCells);
@@ -94,5 +109,26 @@ class TreeProcessingStepOne extends Command
         $this->info("Tree processing step 1 completed for map {$mapId}.");
         
         return self::SUCCESS;
+    }
+    
+    protected function updateMapStatus($map, string $statusName, ?string $nextStep = null): void
+    {
+        $map->state = $statusName;
+        $map->mapstatuses_id = $this->resolveStatusId($statusName);
+
+        if ($nextStep !== null) {
+            $map->next_step = $nextStep;
+        }
+
+        $map->save();
+    }
+
+    protected function resolveStatusId(string $statusName): ?int
+    {
+        if (!array_key_exists($statusName, $this->statusCache)) {
+            $this->statusCache[$statusName] = MapStatus::firstWhere('name', $statusName)?->id;
+        }
+
+        return $this->statusCache[$statusName];
     }
 }

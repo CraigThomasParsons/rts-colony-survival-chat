@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class Cell extends Model
 {
+    use HasUuids;
+
     protected $connection = 'mysql';
 
     /**
@@ -18,4 +21,8 @@ class Cell extends Model
     protected $table = 'cell';
 
     public $timestamps = false;
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 }
