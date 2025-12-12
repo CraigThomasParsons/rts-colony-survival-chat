@@ -34,13 +34,15 @@ class MapFirstStepGenerator
      * and persist cells and tiles to MySQL.
      *
      * @param string $mapId
+     *
      * @return void
      *
      * @throws \Exception
      */
     public function generate(string $mapId): void
     {
-        $size = self::DEFAULT_HEIGHT_MAP_SIZE;
+        // Default size used only when the map does not already provide coordinates
+        $defaultSize = self::DEFAULT_HEIGHT_MAP_SIZE;
 
         // Get or create map record
         $map = Map::find($mapId);
@@ -49,10 +51,14 @@ class MapFirstStepGenerator
             $map->id = $mapId;
             $map->name = 'Map ' . date('Ymd-His');
             $map->description = 'Auto-created (fallback)';
-            $map->coordinateX = $size;
-            $map->coordinateY = $size;
+            $map->coordinateX = $defaultSize;
+            $map->coordinateY = $defaultSize;
             $map->save();
         }
+
+    // Use the map coordinates as the heightmap dimensions when available
+        $sizeX = (int) ($map->coordinateX ?: $defaultSize);
+        $sizeY = (int) ($map->coordinateY ?: $defaultSize);
 
         // Mark as generating
         $map->is_generating = true;
@@ -60,10 +66,10 @@ class MapFirstStepGenerator
         $map->save();
 
         // Generate heightmap seed from mapId (deterministic)
-        $seed = crc32($mapId . 'FaultLine');
+    $seed = crc32($mapId . 'FaultLine');
 
         // Generate heightmap
-        $heightmapGenerator = new FaultLineAlgorithm($size, $size, $seed);
+    $heightmapGenerator = new FaultLineAlgorithm($sizeX, $sizeY, $seed);
         $heightmap = $heightmapGenerator->generate(
             iterations: 200,
             stepAmount: 1.5,
@@ -74,6 +80,8 @@ class MapFirstStepGenerator
         $this->calculateThresholds($heightmap);
 
         try {
+            // Persist all cell and tile mutations atomically so downstream steps
+            // always see a consistent state.
             DB::transaction(function () use ($map, $mapId, $heightmap, &$cellCount) {
                 // Delete existing cells and tiles for this map (idempotent)
                 Cell::where('map_id', $mapId)->delete();
@@ -115,7 +123,29 @@ class MapFirstStepGenerator
             throw $e;
         }
 
-        // Mark generation complete
+    // Post-init validation: ensure cell count equals dimensions (coordinateX * coordinateY)
+        $expectedCells = ((int) $map->coordinateX) * ((int) $map->coordinateY);
+        $actualCells = Cell::where('map_id', $mapId)->count();
+
+        if ($actualCells !== $expectedCells) {
+            Log::error('MapFirstStepGenerator: Cell count mismatch after initialization', [
+                'map_id' => $mapId,
+                'expected' => $expectedCells,
+                'actual' => $actualCells,
+                'coordinateX' => (int) $map->coordinateX,
+                'coordinateY' => (int) $map->coordinateY,
+            ]);
+
+            // Do not mark as completed if validation fails; set a failure state
+            $map->is_generating = false;
+            $map->state = 'Cell_Process_Failed_Validation';
+            $map->save();
+
+            // Optionally, throw to halt chained steps if any rely on this method directly
+            throw new \RuntimeException("Cell count validation failed: expected {$expectedCells}, got {$actualCells}");
+        }
+
+    // Mark generation complete only when validation passes
         $map->is_generating = false;
         $map->state = 'Cell_Process_Completed';
         $map->save();

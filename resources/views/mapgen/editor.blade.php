@@ -59,11 +59,47 @@
                 <a id="next-step-btn-tabs" href="#" class="inline-flex items-center px-3 py-2 bg-green-700 hover:bg-green-600 rounded text-sm font-semibold">Run Next Step →</a>
             </div>
         </div>
-        <div id="tab-heightmap" class="relative w-full" style="min-height:40vh;">
-            <canvas id="heightmapCanvas" width="128" height="128" class="absolute inset-0 border border-gray-700 rounded bg-black/60" style="width:100%; height:100%; image-rendering: pixelated;"></canvas>
+        <div id="tab-heightmap" class="relative w-full" style="min-height:60vh;">
+            <div class="flex items-center justify-between mb-2 text-xs text-gray-400">
+                <div>Grid: <span id="heightmapDims">—</span></div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <label for="heightmapZoom">Zoom</label>
+                        <input id="heightmapZoom" type="range" min="1" max="8" step="1" value="1" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="heightmapFit">Fit</label>
+                        <select id="heightmapFit" class="bg-gray-800 text-gray-200 rounded px-2 py-1">
+                            <option value="none">None</option>
+                            <option value="width">Width</option>
+                            <option value="height">Height</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <canvas id="heightmapCanvas" width="128" height="128" class="absolute inset-0 border border-gray-700 rounded bg-black/60" style="width:100%; height:100%; image-rendering: pixelated; transform-origin: top left;"></canvas>
         </div>
-        <div id="tab-tilemap" class="relative w-full" style="min-height:40vh;">
-            <canvas id="tilemapCanvas" width="128" height="128" class="absolute inset-0 border border-gray-700 rounded bg-black/60" style="width:100%; height:100%; image-rendering: pixelated;"></canvas>
+        <div id="tab-tilemap" class="relative w-full" style="min-height:60vh;">
+            <div class="flex items-center justify-between mb-2 text-xs text-gray-400">
+                <div>Grid: <span id="tilemapDims">—</span></div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <label for="tilemapZoom">Zoom</label>
+                        <input id="tilemapZoom" type="range" min="1" max="8" step="1" value="1" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="tilemapFit">Fit</label>
+                        <select id="tilemapFit" class="bg-gray-800 text-gray-200 rounded px-2 py-1">
+                            <option value="none">None</option>
+                            <option value="width">Width</option>
+                            <option value="height">Height</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <canvas id="tilemapCanvas" width="128" height="128" class="absolute inset-0 border border-gray-700 rounded bg-black/60" style="width:100%; height:100%; image-rendering: pixelated; transform-origin: top left;"></canvas>
         </div>
         <div id="tab-log" class="p-2">
             <div class="panel">
@@ -202,6 +238,29 @@
             const heightmapCtx = heightmapCanvas ? heightmapCanvas.getContext('2d') : null;
             const tilemapCanvas = document.getElementById('tilemapCanvas');
             const tilemapCtx = tilemapCanvas ? tilemapCanvas.getContext('2d') : null;
+            const heightmapZoomEl = document.getElementById('heightmapZoom');
+            const tilemapZoomEl = document.getElementById('tilemapZoom');
+            const heightmapFitEl = document.getElementById('heightmapFit');
+            const tilemapFitEl = document.getElementById('tilemapFit');
+            const heightmapDimsEl = document.getElementById('heightmapDims');
+            const tilemapDimsEl = document.getElementById('tilemapDims');
+            let heightmapZoom = 1;
+            let tilemapZoom = 1;
+            let heightmapFit = 'none';
+            let tilemapFit = 'none';
+
+            function computeFitScale(canvas, fitMode, w, h) {
+                if (!canvas || !w || !h) return 1;
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const availW = rect.width;
+                const availH = rect.height;
+                const scaleW = availW / w;
+                const scaleH = availH / h;
+                if (fitMode === 'width') return scaleW;
+                if (fitMode === 'height') return scaleH;
+                if (fitMode === 'both') return Math.min(scaleW, scaleH);
+                return 1; // none
+            }
 
             async function fetchHeightmapData() {
                 try {
@@ -236,6 +295,12 @@
                 heightmapCanvas.width = w;
                 heightmapCanvas.height = h;
                 heightmapCtx.putImageData(imageData, 0, 0);
+                // Update dims label
+                if (heightmapDimsEl) heightmapDimsEl.textContent = `${w}×${h}`;
+                // Apply zoom
+                const fitScale = computeFitScale(heightmapCanvas, heightmapFit, w, h);
+                const scale = (heightmapFit !== 'none') ? fitScale : heightmapZoom;
+                heightmapCanvas.style.transform = `scale(${scale})`;
                 // CSS scales to fit container (pixelated)
             }
 
@@ -266,6 +331,12 @@
                 tilemapCanvas.width = w;
                 tilemapCanvas.height = h;
                 tilemapCtx.putImageData(imageData, 0, 0);
+                // Update dims label
+                if (tilemapDimsEl) tilemapDimsEl.textContent = `${w}×${h}`;
+                // Apply zoom
+                const fitScaleT = computeFitScale(tilemapCanvas, tilemapFit, w, h);
+                const scaleT = (tilemapFit !== 'none') ? fitScaleT : tilemapZoom;
+                tilemapCanvas.style.transform = `scale(${scaleT})`;
                 // CSS scales to fit container (pixelated)
             }
 
@@ -275,6 +346,45 @@
             // Initial draw and poll every 5s
             fetchHeightmapData();
             setInterval(fetchHeightmapData, 5000);
+            // Zoom controls
+            heightmapZoomEl?.addEventListener('input', (e) => {
+                heightmapZoom = Number(e.target.value) || 1;
+                // Re-apply transform immediately
+                if (heightmapCanvas) {
+                    const w = heightmapCanvas.width, h = heightmapCanvas.height;
+                    const fitScale = computeFitScale(heightmapCanvas, heightmapFit, w, h);
+                    const scale = (heightmapFit !== 'none') ? fitScale : heightmapZoom;
+                    heightmapCanvas.style.transform = `scale(${scale})`;
+                }
+            });
+            tilemapZoomEl?.addEventListener('input', (e) => {
+                tilemapZoom = Number(e.target.value) || 1;
+                if (tilemapCanvas) {
+                    const w = tilemapCanvas.width, h = tilemapCanvas.height;
+                    const fitScaleT = computeFitScale(tilemapCanvas, tilemapFit, w, h);
+                    const scaleT = (tilemapFit !== 'none') ? fitScaleT : tilemapZoom;
+                    tilemapCanvas.style.transform = `scale(${scaleT})`;
+                }
+            });
+            heightmapFitEl?.addEventListener('change', (e) => {
+                heightmapFit = e.target.value || 'none';
+                // Re-apply transform based on fit
+                if (heightmapCanvas) {
+                    const w = heightmapCanvas.width, h = heightmapCanvas.height;
+                    const fitScale = computeFitScale(heightmapCanvas, heightmapFit, w, h);
+                    const scale = (heightmapFit !== 'none') ? fitScale : heightmapZoom;
+                    heightmapCanvas.style.transform = `scale(${scale})`;
+                }
+            });
+            tilemapFitEl?.addEventListener('change', (e) => {
+                tilemapFit = e.target.value || 'none';
+                if (tilemapCanvas) {
+                    const w = tilemapCanvas.width, h = tilemapCanvas.height;
+                    const fitScaleT = computeFitScale(tilemapCanvas, tilemapFit, w, h);
+                    const scaleT = (tilemapFit !== 'none') ? fitScaleT : tilemapZoom;
+                    tilemapCanvas.style.transform = `scale(${scaleT})`;
+                }
+            });
 
             // Connect SSE for log tab
             connectSSE();

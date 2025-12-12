@@ -77,8 +77,6 @@ class MapController extends Controller
 
     /**
      * Should run the height map generator and set up the basic cells.
-     * I need to rewrite the MapGenerator to use MongDb to temporarily store
-     * data.
      *
      * @param string $mapId Primary key of the map.
      *
@@ -91,6 +89,40 @@ class MapController extends Controller
 
         // After step 1 redirect to editor hub for this map.
         return redirect()->route('map.editor', ['mapId' => $mapId]);
+    }
+
+    /**
+     * Should run the height map generator and set up the basic cells.
+     * Then show a preview of the height map.
+     *
+     * @param string $mapId Primary key of the map.
+     *
+     * @return view
+     */
+    public function runFirstStepAndPreview(string $mapId)
+    {
+        $generator = new MapFirstStepGenerator();
+        $generator->generate($mapId);
+
+        $map = \App\Models\Map::findOrFail($mapId);
+
+        // Build a 2D array of cells keyed by Y then X
+        $cells = [];
+        $size = max((int)($map->coordinateX ?? 32), (int)($map->coordinateY ?? 32));
+
+        $allCells = \App\Models\Cell::where('map_id', $mapId)->get();
+        foreach ($allCells as $cell) {
+            $y = (int)($cell->mapCoordinateY ?? 0);
+            $x = (int)($cell->mapCoordinateX ?? 0);
+            $cells[$y][$x] = $cell;
+        }
+
+        return view('mapgen.heightmap-preview', [
+            'map' => $map,
+            'cells' => $cells,
+            'size' => $size,
+            'nextRoute' => url('/Map/step2/' . $mapId . '/'),
+        ]);
     }
 
     /**
@@ -492,6 +524,7 @@ class MapController extends Controller
         $WaterProcessor->setWaterProcessingDatabaseLayer($waterProcessingDatabaseLayer)
             ->setWaterTileLocations($waterTileLocations)
             ->setMap($mapMemory);
+
         //echo "Going to run third step on MapId" . $mapId;
         //return Redirect::to('/Map/load/' . $mapId);
         $WaterProcessor->waterTiles();
@@ -571,6 +604,7 @@ class MapController extends Controller
         }
 
         $state = $map->state ?? 'Unknown';
+
         $mapping = [
             MapStatus::CREATED_EMPTY => url("/Map/step1/{$mapId}/"),
             MapStatus::CELL_PROCESSING_STARTED => url("/Map/step1/{$mapId}/"),

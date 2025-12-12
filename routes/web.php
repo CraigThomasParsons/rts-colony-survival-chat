@@ -111,6 +111,9 @@ Route::get("/Map/treeStep3/{mapId}/", [
 //'as'=>'mapgen.step4',
 Route::get("/Map/step4/{mapId}/", [MapController::class, "runFourthStep"])->name('mapgen.step4');
 
+
+Route::get("/Map/heightmap/{mapId}/", [MapController::class, "runFirstStepAndPreview"]);
+
 //'as'=>'mapgen.step5',
 Route::get("/Map/step5/{mapId}/{mountainLine}", [
     MapController::class,
@@ -119,9 +122,6 @@ Route::get("/Map/step5/{mapId}/{mountainLine}", [
 
 //'as'=>'mapgen.load',
 Route::get("/Map/load/{mapId}/", [MapController::class, "runMapLoad"])->name('mapgen.load');
-
-//'as'=>'mapgen.load',
-Route::get("/Map/save/{mapId}/", [MapController::class, "saveMongoToMysql"])->name('mapgen.save');
 
 Route::view("profile", "profile")
     ->middleware(["auth"])
