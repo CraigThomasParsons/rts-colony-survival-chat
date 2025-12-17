@@ -64,18 +64,13 @@ class CreateUser extends Command
 
         // Build and save user
         $user = new User();
-        // Common columns; adapt to your schema
-        if (property_exists($user, 'name')) {
-            $user->name = $name;
-        }
-        if (property_exists($user, 'email')) {
-            $user->email = $email;
-        }
-        // password
-        if (property_exists($user, 'password')) {
-            $user->password = Hash::make($password);
-        }
-        // optional is_admin / role columns
+        
+        // Set common attributes (Eloquent handles these as columns, not PHP properties)
+        $user->name = $name;
+        $user->email = $email;
+        $user->password = Hash::make($password);
+        
+        // Optional is_admin / role columns
         if (SchemaHasColumn('users','is_admin')) {
             $user->is_admin = $isAdmin ? 1 : 0;
         }

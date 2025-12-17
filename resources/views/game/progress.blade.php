@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    // Map status for lifecycle gating UI.
+    $map = \App\Models\Map::find($mapId);
+    $mapStatus = $map?->status;
+@endphp
+
 <link rel="stylesheet" href="{{ asset('css/panel.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/typeit@8.8.3/dist/typeit.min.js" defer></script>
 
@@ -11,10 +17,30 @@
             <div class="muted" style="font-size:0.85rem;">
                 Streaming log: <code>storage/logs/mapgen-{{ $mapId }}.log</code>
             </div>
+            @if ($map)
+                <div class="muted" style="font-size:0.85rem; margin-top:0.35rem;">
+                    Lifecycle status:
+                    <code>{{ $mapStatus ?? '—' }}</code>
+                    @if ($mapStatus === 'failed' && !empty($map->validation_errors))
+                        <span class="text-red-300">(validation failed)</span>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <div style="text-align:right; display:flex; gap:0.5rem;">
-            <a href="{{ url('/Map/load/'.$mapId.'/') }}" class="btn btn-primary">Open Map View</a>
+            <!-- <a href="{{ url('/Map/load/'.$mapId.'/') }}" class="btn btn-primary">Open Map View</a> -->
+            @if ($map)
+                @if ($mapStatus === 'ready')
+                    @php($gameId = $map->games()->orderBy('games.created_at')->value('games.id'))
+                    <form method="POST" action="{{ $gameId ? route('game.start', ['game' => $gameId]) : route('maps.start', ['map' => $map->id]) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">Start Game</button>
+                    </form>
+                @else
+                    <button class="btn btn-muted" disabled title="Map must be ready to start">Start Game</button>
+                @endif
+            @endif
             <a href="{{ route('control-panel') }}" class="btn btn-muted">Control Panel</a>
         </div>
     </div>
@@ -47,17 +73,20 @@
             </div>
         </div>
         <div class="status-card">
-            <div class="status-title">Minimaps</div>
+            <div class="status-title">Stats</div>
             
             <div style="display:flex; gap:0.5rem;">
                 <div style="flex:1;">
-                    <div class="status-sub" style="margin-bottom:0.25rem;">Heightmap</div>
-                    <canvas
+                    <div class="status-sub" style="margin-bottom:0.25rem;"></div>
+                    <!-- <canvas
                         id="heightmapCanvas"
                         width="128"
                         height="128"
                         style="width:100%; border:1px solid #333; image-rendering: pixelated; background:#000;">
-                    </canvas>
+                    </canvas> -->
+                    <div id="heightmapThresholds" class="text-xs text-gray-300 mt-2" style="line-height:1.3;">
+                        Thresholds: <span class="text-gray-400">loading…</span>
+                    </div>
                 </div>
                 <div style="flex:1;">
                     <div class="status-sub" style="margin-bottom:0.25rem;">Tilemap</div>
@@ -79,7 +108,7 @@
 
 <script>
 (function () {
-    const mapId = @json($mapId);
+    const mapId = '{{ $mapId }}';
     const sseUrl = "{{ route('game.mapgen.progress.stream', ['mapId' => $mapId]) }}";
     const heightmapDataUrl = "{{ route('map.heightmap.data', ['mapId' => $mapId]) }}";
     const logEl = document.getElementById('log');
@@ -185,6 +214,14 @@
             const data = await resp.json();
             if (heightmapCtx) drawHeightmap(data);
             if (tilemapCtx) drawTilemap(data);
+            // Update thresholds legend if present
+            const thrEl = document.getElementById('heightmapThresholds');
+            if (thrEl && data && data.thresholds) {
+                const wm = data.thresholds.waterMax ?? '—';
+                const fh = data.thresholds.foothills ?? data.thresholds.low ?? '—';
+                const pk = data.thresholds.peaks ?? data.thresholds.high ?? '—';
+                thrEl.innerHTML = `Water ≤ <span class="text-blue-300">${wm}</span> · Foothills ≥ <span class="text-amber-300">${fh}</span> · Peaks ≥ <span class="text-red-300">${pk}</span>`;
+            }
         } catch (e) {
             console.error('Error fetching heightmap data', e);
         }

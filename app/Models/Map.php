@@ -36,11 +36,18 @@ class Map extends Model
         'next_step',
         'is_generating',
         'seed',
+        'status',
+        'validated_at',
+        'started_at',
+        'validation_errors',
     ];
 
     // Allow mass assignment of is_generating lock flag
     protected $casts = [
         'is_generating' => 'boolean',
+        'validated_at' => 'datetime',
+        'started_at' => 'datetime',
+        'validation_errors' => 'array',
     ];
 
     /**

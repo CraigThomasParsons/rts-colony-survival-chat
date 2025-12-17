@@ -16,7 +16,13 @@ return new class extends Migration {
         });
 
         // Backfill map.uuid for existing rows
-        DB::statement("UPDATE `map` SET `uuid` = UUID() WHERE `uuid` IS NULL");
+        if (DB::getDriverName() === 'sqlite') {
+            DB::table('map')->whereNull('uuid')->cursor()->each(function ($map) {
+                DB::table('map')->where('id', $map->id)->update(['uuid' => (string) \Illuminate\Support\Str::uuid()]);
+            });
+        } else {
+            DB::statement("UPDATE `map` SET `uuid` = UUID() WHERE `uuid` IS NULL");
+        }
 
         // 2) Add map_uuid columns to children tables
         foreach (['cell', 'tile', 'game_map'] as $child) {
@@ -30,15 +36,27 @@ return new class extends Migration {
         // 3) Backfill child.map_uuid by joining to map.uuid
         // cell
         if (Schema::hasTable('cell')) {
-            DB::statement("UPDATE `cell` c JOIN `map` m ON c.map_id = m.id SET c.map_uuid = m.uuid WHERE c.map_uuid IS NULL");
+            if (DB::getDriverName() === 'sqlite') {
+                 DB::statement("UPDATE `cell` SET `map_uuid` = (SELECT `uuid` FROM `map` WHERE `map`.`id` = `cell`.`map_id`) WHERE `map_uuid` IS NULL");
+            } else {
+                 DB::statement("UPDATE `cell` c JOIN `map` m ON c.map_id = m.id SET c.map_uuid = m.uuid WHERE c.map_uuid IS NULL");
+            }
         }
         // tile
         if (Schema::hasTable('tile')) {
-            DB::statement("UPDATE `tile` t JOIN `map` m ON t.map_id = m.id SET t.map_uuid = m.uuid WHERE t.map_uuid IS NULL");
+            if (DB::getDriverName() === 'sqlite') {
+                 DB::statement("UPDATE `tile` SET `map_uuid` = (SELECT `uuid` FROM `map` WHERE `map`.`id` = `tile`.`map_id`) WHERE `map_uuid` IS NULL");
+            } else {
+                 DB::statement("UPDATE `tile` t JOIN `map` m ON t.map_id = m.id SET t.map_uuid = m.uuid WHERE t.map_uuid IS NULL");
+            }
         }
         // game_map
         if (Schema::hasTable('game_map')) {
-            DB::statement("UPDATE `game_map` gm JOIN `map` m ON gm.map_id = m.id SET gm.map_uuid = m.uuid WHERE gm.map_uuid IS NULL");
+            if (DB::getDriverName() === 'sqlite') {
+                 DB::statement("UPDATE `game_map` SET `map_uuid` = (SELECT `uuid` FROM `map` WHERE `map`.`id` = `game_map`.`map_id`) WHERE `map_uuid` IS NULL");
+            } else {
+                 DB::statement("UPDATE `game_map` gm JOIN `map` m ON gm.map_id = m.id SET gm.map_uuid = m.uuid WHERE gm.map_uuid IS NULL");
+            }
         }
 
         // 4) Create FKs on the new map_uuid columns to map.uuid

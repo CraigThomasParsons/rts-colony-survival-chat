@@ -18,7 +18,7 @@ class Tile extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'description', 'coordinateX', 'coordinateY', 'mapCoordinateX', 'mapCoordinateY', 'cell_id', 'map_id', 'tileType_id'];
+    protected $fillable = ['name', 'description', 'coordinateX', 'coordinateY', 'mapCoordinateX', 'mapCoordinateY', 'cell_id', 'map_id', 'tileType_id', 'has_trees'];
 
     public $timestamps = false;
 

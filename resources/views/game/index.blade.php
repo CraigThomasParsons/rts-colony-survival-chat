@@ -42,13 +42,25 @@
                 @forelse($games as $game)
                     <tr class="border-t border-gray-700">
                         <td class="px-3 py-2">{{ $game->name }}</td>
-                        <td class="px-3 py-2">{{ $game->maps->count() }}</td>
+                        <td class="px-3 py-2">
+                            {{ $game->maps->count() }}
+                            @if($game->maps->first())
+                                <div class="text-xs text-gray-400">status: {{ $game->maps->first()->status ?? '—' }}</div>
+                            @endif
+                        </td>
                         <td class="px-3 py-2">{{ $game->created_at?->diffForHumans() }}</td>
                         <td class="px-3 py-2 space-x-2">
                             @if($game->maps->first())
-                                <a href="{{ route('map.editor', ['mapId' => $game->maps->first()->id]) }}" class="text-blue-400 hover:text-blue-300 underline">Editor</a>
+                                @php($m = $game->maps->first())
+                                <a href="{{ route('map.editor', ['mapId' => $m->id]) }}" class="text-blue-400 hover:text-blue-300 underline">Editor</a>
                                 <a href="{{ route('game.mapgen.form', ['mapId' => $game->maps->first()->id]) }}" class="text-indigo-400 hover:text-indigo-300 underline">Generate</a>
                                 <a href="{{ route('mapgen.preview', ['mapId' => $game->maps->first()->id]) }}" class="text-green-400 hover:text-green-300 underline">Preview</a>
+                                @if(($m->status ?? null) === 'ready')
+                                    <form method="POST" action="{{ route('game.start', ['game' => $game->id]) }}" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-emerald-400 hover:text-emerald-300 underline">Start Game</button>
+                                    </form>
+                                @endif
                             @endif
                         </td>
                     </tr>

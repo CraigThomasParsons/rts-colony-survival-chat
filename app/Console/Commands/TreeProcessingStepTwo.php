@@ -89,14 +89,23 @@ class TreeProcessingStepTwo extends Command
                     $tile->name = 'inner-Tree';
                     $tile->description = 'The default tree tile';
                     $tile->tileTypeId = 29;
+                    if (property_exists($tile, 'has_trees')) {
+                        $tile->has_trees = true;
+                    }
                 } else if ($currentCell->name == 'Water') {
                     $tile->name = 'inner-WaterTile';
                     $tile->description = 'The Inside Water Tile.';
                     $tile->tileTypeId = 3;
+                    if (property_exists($tile, 'has_trees')) {
+                        $tile->has_trees = false;
+                    }
                 } else if ($currentCell->name == 'Impassable Rocks') {
                     $tile->name = 'inner-Rock';
                     $tile->description = 'Rocky area.';
                     $tile->tileTypeId = 2;
+                    if (property_exists($tile, 'has_trees')) {
+                        $tile->has_trees = false;
+                    }
                 }
                 $tile->save();
                 $tileCount++;

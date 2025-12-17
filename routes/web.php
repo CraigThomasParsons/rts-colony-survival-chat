@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GameViewController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MapController;
+
 // Livewire game screen route: wrap component in a blade view to avoid invalid route action
 // Livewire Game Screen Component
 // Correct namespace for Livewire components (App\Livewire\..., not App\Http\Livewire)
@@ -29,9 +30,26 @@ Route::post('/game', [GameController::class, 'create'])->middleware('auth')->nam
 Route::get("/game/{mapId}/mapgen", [GameController::class, "mapGenForm"])
     ->middleware("auth")
     ->name("game.mapgen.form");
+
 Route::post("/game/{mapId}/mapgen", [GameController::class, "mapGenStart"])
     ->middleware("auth")
     ->name("game.mapgen.start");
+
+// Lightweight JSON progress endpoint (parses mapgen log for END markers).
+Route::get('/game/{mapId}/mapgen/progress.json', [GameController::class, 'mapGenLogProgress'])
+    ->middleware('auth')
+    ->name('game.mapgen.progress.json');
+
+// Task 3: Start the game for a map (only allowed when map.status === 'ready').
+// Back-compat route: start by map id (UUID). Prefer starting by Game id.
+Route::post('/maps/{map}/start', [GameController::class, 'startMap'])
+    ->middleware('auth')
+    ->name('maps.start');
+
+// Preferred: start by Game primary key.
+Route::post('/game/{game}/start', [GameController::class, 'startGame'])
+    ->middleware('auth')
+    ->name('game.start');
 
 //
 // Progress view & stream for map generation logs
@@ -114,13 +132,18 @@ Route::get("/Map/step4/{mapId}/", [MapController::class, "runFourthStep"])->name
 
 Route::get("/Map/heightmap/{mapId}/", [MapController::class, "runFirstStepAndPreview"]);
 
-//'as'=>'mapgen.step5',
+// Tilemap preview route
+Route::get("/Map/tilemap/{mapId}", function(string $mapId){
+    return view('mapgen.tilemap-preview', ['mapId' => $mapId]);
+})->name('map.tilemap.preview');
+
+//'as'=>'mapgen.step5',Run Step 5.
 Route::get("/Map/step5/{mapId}/{mountainLine}", [
     MapController::class,
     "runLastStep",
 ])->name('mapgen.step5');
 
-//'as'=>'mapgen.load',
+//'as'=>'mapgen.load', Load the map view (Basic)
 Route::get("/Map/load/{mapId}/", [MapController::class, "runMapLoad"])->name('mapgen.load');
 
 Route::view("profile", "profile")

@@ -88,7 +88,11 @@ class TreeProcessingStepOne extends Command
         
         foreach ($tiles as $something) {
             foreach ($something as $tile) {
-                if ($tile->tileTypeId == 29) {
+                    if ($tile->tileTypeId == 29) {
+                        // Ensure has_trees flag is set when tileTypeId = 29 (trees)
+                        if (property_exists($tile, 'has_trees')) {
+                            $tile->has_trees = true;
+                        }
                     $tile->name = 'inner-Land';
                     $tile->description = 'Passable';
                     $tile->tileTypeId = 1;
@@ -96,6 +100,9 @@ class TreeProcessingStepOne extends Command
                     $tile->name = 'inner-Tree';
                     $tile->description = 'The default tree tile';
                     $tile->tileTypeId = 29;
+                        if (property_exists($tile, 'has_trees')) {
+                            $tile->has_trees = true;
+                        }
                 }
                 $tile->save();
                 $tileCount++;

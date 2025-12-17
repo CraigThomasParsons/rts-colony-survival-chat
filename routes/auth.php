@@ -14,8 +14,8 @@ Route::middleware('guest')->group(function () {
 
     // Fallback traditional POST login route to support non-Livewire submissions
     // This prevents 405 errors if the browser or extensions trigger a native form POST.
-    Route::post('login', [LoginController::class, 'postLogin'])
-        ->name('login.post');
+    #Route::post('login', [LoginController::class, 'postLogin'])
+    #    ->name('login.post');
 
     Volt::route('forgot-password', 'pages.auth.forgot-password')
         ->name('password.request');

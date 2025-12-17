@@ -1,101 +1,108 @@
 <?php
 
-use App\Livewire\Forms\LoginForm;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.guest')] class extends Component
 {
-    public LoginForm $form;
+    public string $email = '';
+    public string $password = '';
+    public bool $showPassword = false;
 
-    /**
-     * Handle an incoming authentication request.
-     */
-    public function login(): void
+    public function login()
     {
-        $this->validate();
+        // Validate input
+        $this->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
 
-        $this->form->authenticate();
+        // Trim any whitespace
+        $email = trim($this->email);
+        $password = $this->password;
 
-        Session::regenerate();
+        // Debug logging
+        \Log::info('Login attempt', [
+            'email' => $email,
+            'password_length' => strlen($password),
+            'password_first_char' => substr($password, 0, 1),
+        ]);
 
-        $this->redirectIntended(default: route('control-panel', absolute: false), navigate: true);
+        $result = Auth::attempt(['email' => $email, 'password' => $password]);
+        
+        \Log::info('Login result', ['success' => $result]);
+
+        if (! $result) {
+            throw ValidationException::withMessages([
+                'email' => 'Invalid credentials. Please check your email and password.',
+            ]);
+        }
+
+        session()->regenerate();
+
+        return redirect()->intended(route('control-panel'));
     }
-}; ?>
+};
+?>
 
-<style>
-    .login-card {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
-    .login-card h2 {
-        margin: 0;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-    }
-    .glass-panel {
-        border-radius: 28px;
-        padding: 2rem;
-        background: rgba(14, 17, 35, 0.92);
-        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
-        border: 1px solid rgba(255,255,255,0.06);
-    }
-    .login-btn {
-        border-radius: 999px;
-        padding: 0.9rem 1.8rem;
-        font-weight: 600;
-    }
-</style>
+<div class="min-h-screen flex items-center justify-center px-4">
+    <form wire:submit.prevent="login" class="p-12 rounded-xl bg-slate-900 text-white space-y-8 w-full max-w-3xl">
+        <h1 class="text-6xl font-bold">Login</h1>
 
-<div class="login-card">
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-3" :status="session('status')" />
+        @if (session('status'))
+            <div class="p-6 rounded bg-green-600 text-white text-3xl">
+                {{ session('status') }}
+            </div>
+        @endif
 
-    <div class="center-align" style="color:#cdd7ff;">
-        <h2>Welcome Back</h2>
-        <p>Sign in to resume your colony.</p>
-    </div>
+        @if ($errors->any())
+            <div class="p-6 rounded bg-red-600 text-white text-3xl">
+                @foreach ($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
 
-    <form wire:submit="login" method="POST" action="{{ route('login.post') }}" class="glass-panel">
-        @csrf
-        <div class="input-field">
-            <i class="material-icons prefix">mail</i>
-            <input wire:model="form.email" id="email" type="email" name="email" required autofocus autocomplete="username" class="validate" />
-            <label for="email">{{ __('Email') }}</label>
-            <x-input-error :messages="$errors->get('form.email')" class="red-text text-lighten-3 mt-1" />
+        <div class="space-y-3">
+            <label class="block text-3xl font-medium">Email</label>
+            <input
+                wire:model="email"
+                type="email"
+                placeholder="your@email.com"
+                class="w-full p-6 rounded-lg bg-slate-800 text-3xl placeholder-slate-500"
+                required
+            >
         </div>
 
-        <div class="input-field">
-            <i class="material-icons prefix">lock</i>
-            <input wire:model="form.password" id="password" type="password" name="password" required autocomplete="current-password" class="validate" />
-            <label for="password">{{ __('Password') }}</label>
-            <x-input-error :messages="$errors->get('form.password')" class="red-text text-lighten-3 mt-1" />
-        </div>
-
-        <div class="row" style="margin-bottom:0;">
-            <label for="remember" class="col s12 m6">
-                <p>
-                    <label>
-                        <input wire:model="form.remember" id="remember" type="checkbox" class="filled-in" />
-                        <span>{{ __('Remember me') }}</span>
-                    </label>
-                </p>
-            </label>
-            <div class="col s12 m6 right-align">
-                @if (Route::has('password.request'))
-                    <a class="text-sm" style="color:#b1c5ff;" href="{{ route('password.request') }}" wire:navigate>
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
+        <div class="space-y-3">
+            <label class="block text-3xl font-medium">Password</label>
+            <div class="relative">
+                <input
+                    wire:model="password"
+                    type="{{ $showPassword ? 'text' : 'password' }}"
+                    placeholder="Your password"
+                    class="w-full p-6 pr-20 rounded-lg bg-slate-800 text-3xl placeholder-slate-500"
+                    required
+                >
+                <button
+                    type="button"
+                    wire:click="$toggle('showPassword')"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-4xl"
+                >
+                    @if($showPassword)
+                        👁️
+                    @else
+                        👁️‍🗨️
+                    @endif
+                </button>
             </div>
         </div>
 
-        <div class="center-align" style="margin-top:1rem;">
-            <button type="submit" class="btn-large waves-effect waves-light purple accent-3 login-btn">
-                {{ __('Log in') }}
-            </button>
-        </div>
+        <button class="w-full p-6 bg-blue-600 rounded-lg hover:bg-blue-700 transition text-3xl font-bold">
+            Login
+        </button>
     </form>
 </div>
+

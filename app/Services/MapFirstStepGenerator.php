@@ -137,7 +137,6 @@ class MapFirstStepGenerator
             ]);
 
             // Do not mark as completed if validation fails; set a failure state
-            $map->is_generating = false;
             $map->state = 'Cell_Process_Failed_Validation';
             $map->save();
 
@@ -145,8 +144,9 @@ class MapFirstStepGenerator
             throw new \RuntimeException("Cell count validation failed: expected {$expectedCells}, got {$actualCells}");
         }
 
-    // Mark generation complete only when validation passes
-        $map->is_generating = false;
+    // Note: do not clear is_generating here.
+    // The queued map generation pipeline (ValidateGeneratedMap / chain catch) owns clearing
+    // the generation lock and transitioning lifecycle status to ready/failed.
         $map->state = 'Cell_Process_Completed';
         $map->save();
     }

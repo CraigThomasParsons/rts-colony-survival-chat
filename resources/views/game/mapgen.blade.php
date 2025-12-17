@@ -159,6 +159,31 @@
     </style>
 </head>
 <body>
+    @php
+        $mapStatus = $map->status;
+
+        // Simple lifecycle-based progress estimate (works even when jobs are stalled).
+        // We keep it deterministic and lightweight for Blade-only rendering.
+        $progressPct = match ($mapStatus) {
+            'generating' => 25,
+            'validating' => 85,
+            'ready' => 100,
+            'active' => 100,
+            'failed' => 100,
+            default => 0,
+        };
+        $progressLabel = match ($mapStatus) {
+            'generating' => 'Generating',
+            'validating' => 'Validating',
+            'ready' => 'Ready',
+            'active' => 'Active',
+            'failed' => 'Failed',
+            default => 'Idle',
+        };
+
+        // JS will replace this with log-derived progress when available.
+        $progressEndpoint = route('game.mapgen.progress.json', ['mapId' => $map->id]);
+    @endphp
     <div class="panel">
         <div>
             <h1>Map Generation — Map #{{ $map->id }}</h1>
@@ -189,18 +214,59 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('game.mapgen.start', ['mapId' => $map->id]) }}" style="display:flex; flex-direction:column; gap:1.5rem;">
-                @csrf
+            <div style="margin-bottom:1rem;padding:0.85rem 1rem;border-radius:12px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);color:#c7d6ff;">
+                Lifecycle status: <strong>{{ $mapStatus ?? '—' }}</strong>
+                @if ($mapStatus === 'failed' && !empty($map->validation_errors))
+                    <div style="margin-top:0.5rem;color:#fecaca; font-size:0.9rem;">
+                        Validation errors:
+                        <pre style="white-space:pre-wrap; margin:0.35rem 0 0; padding:0.6rem; border-radius:10px; background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.06);">{{ is_string($map->validation_errors) ? $map->validation_errors : json_encode($map->validation_errors, JSON_PRETTY_PRINT) }}</pre>
+                    </div>
+                @endif
+            </div>
 
-                {{-- Seed input removed (non-functional) --}}
+            <div style="display:flex; flex-direction:column; gap:1.25rem;">
+                <form method="POST" action="{{ route('game.mapgen.start', ['mapId' => $map->id]) }}" style="display:flex; flex-direction:column; gap:1.5rem;">
+                    @csrf
 
-                <div style="display:flex; flex-wrap:wrap; gap:0.8rem;">
-                    <button type="submit" class="primary">Start Map Generation</button>
-                    <a href="{{ url('/Map/load/'.$map->id.'/') }}" class="secondary" style="text-decoration:none; display:inline-flex; align-items:center;">
-                        View Logs / Status
-                    </a>
-                </div>
-            </form>
+                    {{-- Seed input removed (non-functional) --}}
+
+                    <div style="display:flex; flex-wrap:wrap; gap:0.8rem; align-items:center;">
+                        @if (in_array($mapStatus, ['generating', 'validating'], true))
+                            <button type="submit" class="primary" disabled style="opacity:0.6; cursor:not-allowed;">Map is {{ $mapStatus }}…</button>
+                        @else
+                            <button type="submit" class="primary">Start Map Generation</button>
+                        @endif
+                        <a href="{{ route('game.mapgen.progress', ['mapId' => $map->id]) }}" class="secondary" style="text-decoration:none; display:inline-flex; align-items:center;">
+                            View Progress
+                        </a>
+
+                        {{-- Compact progress bar (visual indicator only; status-driven) --}}
+                        <div
+                            id="mapgenProgress"
+                            aria-label="Generation progress"
+                            title="{{ $progressLabel }}"
+                            data-progress-endpoint="{{ $progressEndpoint }}"
+                            data-initial-percent="{{ $progressPct }}"
+                            data-is-active="{{ in_array($mapStatus, ['generating', 'validating'], true) ? '1' : '0' }}"
+                            style="display:flex; align-items:center; gap:0.55rem; min-width: 260px;"
+                        >
+                            <div style="flex: 1; height: 10px; border-radius: 999px; background: rgba(148, 163, 184, 0.18); border: 1px solid rgba(148, 163, 184, 0.22); overflow:hidden;">
+                                <div id="mapgenProgressBar" style="width: {{ $progressPct }}%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, rgba(99,102,241,0.95), rgba(139,92,246,0.95)); transition: width 300ms ease;"></div>
+                            </div>
+                            <div id="mapgenProgressText" style="font-size: 0.85rem; color: #cbd5f5; min-width: 92px; text-align:right;">
+                                {{ $progressPct }}%
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                @if ($mapStatus === 'ready')
+                    <form method="POST" action="{{ isset($gameId) && $gameId ? route('game.start', ['game' => $gameId]) : route('maps.start', ['map' => $map->id]) }}" style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+                        @csrf
+                        <button type="submit" class="primary" style="background:linear-gradient(120deg, #22c55e, #16a34a); box-shadow:0 15px 35px rgba(34,197,94,0.25);">Start Game</button>
+                    </form>
+                @endif
+            </div>
         </div>
 
         <div class="card" style="gap:1rem;">
@@ -217,6 +283,86 @@
             <a href="{{ route('game.load') }}">Load Game</a>
             <a href="{{ route('control-panel') }}">Control Panel</a>
         </div>
+
+        <script>
+            (function () {
+                const root = document.getElementById('mapgenProgress');
+                if (!root) return;
+
+                const endpoint = root.getAttribute('data-progress-endpoint');
+                const isActive = root.getAttribute('data-is-active') === '1';
+                const bar = document.getElementById('mapgenProgressBar');
+                const text = document.getElementById('mapgenProgressText');
+
+                if (!endpoint || !bar || !text) return;
+
+                let lastPercent = Number(root.getAttribute('data-initial-percent') || '0');
+                let consecutiveErrors = 0;
+
+                function setProgress(percent, label) {
+                    const clamped = Math.max(0, Math.min(100, Number(percent || 0)));
+                    if (Number.isFinite(clamped)) {
+                        lastPercent = clamped;
+                        bar.style.width = clamped + '%';
+                        text.textContent = label ? `${clamped}% ${label}` : `${clamped}%`;
+                        root.title = label ? label : root.title;
+                    }
+                }
+
+                async function tick() {
+                    try {
+                        const res = await fetch(endpoint, {
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            cache: 'no-store'
+                        });
+
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        const data = await res.json();
+
+                        consecutiveErrors = 0;
+
+                        if (!data || data.ok !== true) {
+                            setProgress(lastPercent, ' (progress unavailable)');
+                            return;
+                        }
+
+                        const pct = Number(data.percent ?? lastPercent);
+                        const completed = Number(data.completed ?? 0);
+                        const total = Number(data.total ?? 0);
+
+                        let label = '';
+                        if (data.exists === false) {
+                            label = '(waiting for log…)';
+                        } else if (total > 0) {
+                            label = `(${completed}/${total})`;
+                        }
+
+                        // If the backend says we’re in a terminal state, stop polling.
+                        const status = String(data.mapStatus || '').toLowerCase();
+                        setProgress(pct, label);
+
+                        if (['ready', 'active', 'failed'].includes(status)) {
+                            return; // stop
+                        }
+                    } catch (e) {
+                        consecutiveErrors++;
+                        // Back off labeling if transient.
+                        if (consecutiveErrors >= 3) {
+                            setProgress(lastPercent, '(polling error)');
+                        }
+                    }
+
+                    setTimeout(tick, 2000);
+                }
+
+                // Only poll while generating/validating (keeps it lightweight).
+                if (isActive) {
+                    setTimeout(tick, 250);
+                }
+            })();
+        </script>
     </div>
 </body>
 </html>

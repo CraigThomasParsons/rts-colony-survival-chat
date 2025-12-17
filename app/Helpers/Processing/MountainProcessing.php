@@ -2,9 +2,21 @@
 namespace App\Helpers\Processing;
 
 use App\Helpers\Coordinates as Coordinate;
-use App\Helpers\MongoDatabase\Tile;
+
 /**
- * 
+ * MountainProcessing (legacy helper)
+ *
+ * This class classifies ridge tiles by examining a binary mask of
+ * mountain cell locations and applying neighbor-based rules to assign
+ * corner/edge display types and tile type ids. It was originally
+ * designed around Mongo Tile objects; it now operates on TileAdapter
+ * instances that bridge to Eloquent MySQL tiles.
+ *
+ * Expectations:
+ * - $this->tiles is a 2D grid [$x][$y] of objects exposing:
+ *   isRocky(), notRocky(), setTileDisplayType(), tileTypeId, save()
+ * - $this->mountainCells is a 2D structure of objects exposing
+ *   addTileLocations(&$tileLocations)
  */
 class MountainProcessing
 {
@@ -160,10 +172,9 @@ class MountainProcessing
 
         } else {
             // Consider this a Rocky tile if the tile isn't available.
-            $tileNeighbor = new Tile($intXaxisCoordinate, $intYaxisCoordinate);
-            $tileNeighbor->setStrType('Impassable Rocks');
-            $tileNeighbor->name = 'Impassable Rocks';
-            $tileNeighbor->tileTypeId = 2;
+            // Use a synthetic TileAdapter so we don't persist neighbors
+            // beyond the map boundaries.
+            $tileNeighbor = TileAdapter::synthetic($intXaxisCoordinate, $intYaxisCoordinate, 2);
         }
 
         return $tileNeighbor;

@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers\MapDatabase\MapRepository;
-use App\Helpers\Processing\MountainProcessing;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use App\Models\Map;
+use App\Models\Cell;
+use App\Services\MountainRidgeService;
 
 /**
  * Artisan command: map:5mountain
@@ -14,54 +16,54 @@ use Illuminate\Console\Command;
  */
 class MountainProcessingCommand extends Command
 {
-    protected $signature = 'map:5mountain {mapId : The Map ID to process} {mountainLine? : The mountain height threshold}';
-    protected $description = 'Process mountain tiles and ridges (Step 5)';
+    protected $signature = 'map:5mountain {mapId : The Map ID to process} {mountainLine? : Optional high threshold override}';
+    protected $description = 'Process mountain tiles and ridges (Step 5) using two-pass thresholds';
 
     public function handle(): int
     {
         $mapId = $this->argument('mapId');
-        $mountainLine = $this->argument('mountainLine') ?? 150; // Default threshold
-        
-        $this->info("Starting mountain processing for map {$mapId} with threshold {$mountainLine}...");
-        
-        $map = MapRepository::findFirst($mapId);
-        
+        $overrideHigh = $this->argument('mountainLine');
+
+        $map = Map::find($mapId);
         if (!$map) {
             $this->error("Map {$mapId} not found.");
             return self::FAILURE;
         }
 
-        $this->info("Finding mountain cells...");
-        $mountains = MapRepository::findAllMountainCells($mapId, $mountainLine);
-
-        if (!$mountains || (is_countable($mountains) && count($mountains) === 0)) {
-            $this->info("No mountain cells found above threshold {$mountainLine}. Skipping.");
+        // Gather all heights for percentile computation
+        $heights = Cell::where('map_id', $mapId)->pluck('height')->all();
+        if (empty($heights)) {
+            $this->warn("No cells found for map {$mapId}; skipping mountain processing.");
             return self::SUCCESS;
         }
 
-        $this->info("Processing mountain ridges...");
-        
+        sort($heights);
+        $pct = function(array $arr, float $p): int {
+            $n = count($arr);
+            $idx = (int) floor($n * $p);
+            if ($idx >= $n) { $idx = $n - 1; }
+            if ($idx < 0) { $idx = 0; }
+            return (int) $arr[$idx];
+        };
+
+        $computedLow = $pct($heights, 0.75);
+        $computedHigh = $pct($heights, 0.90);
+
+        // Allow CLI override for high threshold; derive low slightly below when provided
+        $mountainThresholdHigh = $overrideHigh !== null ? (int) $overrideHigh : $computedHigh;
+        $mountainThresholdLow  = $overrideHigh !== null ? max(0, (int)$overrideHigh - 10) : $computedLow;
+
+        $this->info("Starting mountain processing for map {$mapId} (low={$mountainThresholdLow}, high={$mountainThresholdHigh})...");
+
         try {
-            if (!class_exists('\App\Helpers\Processing\MountainProcessing')) {
-                $this->warn("MountainProcessing class not found. Skipping step.");
-                return self::SUCCESS;
-            }
-
-            $mountainProcessor = new MountainProcessing();
-            $tiles = MapRepository::findAllTiles($mapId);
-            
-            $mountainProcessor->init()
-                ->setTiles($tiles)
-                ->setMountainCells($mountains)
-                ->setMountainLine($mountainLine)
-                ->createRidges();
-
+            (new MountainRidgeService())->run($mapId, $mountainThresholdLow, $mountainThresholdHigh);
             $this->info("Mountain processing completed for map {$mapId}.");
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->error("Mountain processing failed: " . $e->getMessage());
+            Log::error('map:5mountain failed', ['map_id' => $mapId, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return self::FAILURE;
         }
-        
+
         return self::SUCCESS;
     }
 }
