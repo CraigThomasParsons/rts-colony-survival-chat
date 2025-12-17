@@ -1,0 +1,10 @@
+[Unit]
+Description=Run RTS Colony Scheduler every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
