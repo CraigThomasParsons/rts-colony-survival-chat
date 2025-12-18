@@ -31,7 +31,7 @@
         }
         .treeTile {
           background-color: #003300;
-          border-color: #006600;
+          border-color: #006600;v
           border-bottom-style: solid;
           border-bottom-width: 5px;
           border-bottom-color: #533118;

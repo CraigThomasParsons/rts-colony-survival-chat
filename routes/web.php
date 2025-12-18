@@ -9,6 +9,9 @@ use App\Http\Controllers\MapController;
 // Livewire Game Screen Component
 // Correct namespace for Livewire components (App\Livewire\..., not App\Http\Livewire)
 use App\Livewire\GameScreen as LivewireGameScreen;
+use App\Livewire\QueueMonitor;
+
+Route::get('/queue', QueueMonitor::class);
 
 Route::get('/feudal-frontiers', LivewireGameScreen::class)->name('game.screen');
 
@@ -39,6 +42,11 @@ Route::post("/game/{mapId}/mapgen", [GameController::class, "mapGenStart"])
 Route::get('/game/{mapId}/mapgen/progress.json', [GameController::class, 'mapGenLogProgress'])
     ->middleware('auth')
     ->name('game.mapgen.progress.json');
+
+// Queue status endpoint for live job monitoring
+Route::get('/game/{mapId}/queue-status', [GameController::class, 'queueStatus'])
+    ->middleware('auth')
+    ->name('game.queue.status');
 
 // Task 3: Start the game for a map (only allowed when map.status === 'ready').
 // Back-compat route: start by map id (UUID). Prefer starting by Game id.

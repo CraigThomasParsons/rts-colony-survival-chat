@@ -10,6 +10,74 @@
 <link rel="stylesheet" href="{{ asset('css/panel.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/typeit@8.8.3/dist/typeit.min.js" defer></script>
 
+<style>
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.step-item.running {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.step-item.completed {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.25);
+}
+
+.step-item.failed {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.step-icon {
+    font-size: 1.2rem;
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+.step-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #e0e7ff;
+}
+
+.step-time {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    min-width: 80px;
+    text-align: right;
+}
+
+.step-item.completed .step-name {
+    color: #86efac;
+}
+
+.step-item.failed .step-name {
+    color: #fca5a5;
+}
+
+.step-item.running .step-icon {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .5;
+    }
+}
+</style>
+
 <div class="panel">
     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;">
         <div>
@@ -45,6 +113,53 @@
         </div>
     </div>
 
+    <!-- Generation Steps Checklist -->
+    <div class="status-card" style="margin-bottom:1.5rem;">
+        <div class="status-title" style="margin-bottom:1rem;">Generation Steps</div>
+        <div id="stepsChecklist" style="display:flex; flex-direction:column; gap:0.5rem;">
+            <div class="step-item" data-step="map:1init">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">1. Initialize Heightmap</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="map:2firststep-tiles">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">2. Process Tiles</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="map:3tree-step1">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">3a. Tree Algorithm (Step 1)</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="map:3tree-step2">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">3b. Tree Algorithm (Step 2)</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="map:3tree-step3">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">3c. Tree Algorithm (Step 3)</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="map:4water">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">4. Process Water</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="map:5mountain">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">5. Process Mountains</span>
+                <span class="step-time"></span>
+            </div>
+            <div class="step-item" data-step="validation">
+                <span class="step-icon">⏳</span>
+                <span class="step-name">6. Validation</span>
+                <span class="step-time"></span>
+            </div>
+        </div>
+    </div>
+
     <div class="status-grid">
         <div class="status-card">
             <div class="status-title">Connection</div>
@@ -55,6 +170,12 @@
             <div class="status-title">Current Step</div>
             <div id="currentStep" class="status-value">—</div>
             <div id="lineCount" class="status-sub">Lines: 0</div>
+        </div>
+        <div class="status-card">
+            <div class="status-title">Queue Status</div>
+            <div id="queuePending" class="status-value">—</div>
+            <div id="queueFailed" class="status-sub">Failed: —</div>
+            <div id="queueCurrent" class="status-sub" style="font-size:0.7rem; margin-top:0.25rem; color:#94a3b8;"></div>
         </div>
         <div class="status-card" style="display:flex; flex-direction:column;">
             <div class="status-title">Controls</div>
@@ -193,6 +314,87 @@
         if (l.match(/error|exception|fatal|failed/)) return 'ERROR';
         if (l.match(/completed|finished|success/)) return 'Completed';
         return null;
+    }
+
+    function updateStepChecklist(line) {
+        const l = line.toLowerCase();
+        
+        // Detect which step is starting
+        if (l.includes('=== start')) {
+            if (l.includes('map:1init')) {
+                markStepRunning('map:1init');
+            } else if (l.includes('map:2firststep-tiles')) {
+                markStepRunning('map:2firststep-tiles');
+            } else if (l.includes('map:3tree-step1')) {
+                markStepRunning('map:3tree-step1');
+            } else if (l.includes('map:3tree-step2')) {
+                markStepRunning('map:3tree-step2');
+            } else if (l.includes('map:3tree-step3')) {
+                markStepRunning('map:3tree-step3');
+            } else if (l.includes('map:4water')) {
+                markStepRunning('map:4water');
+            } else if (l.includes('map:5mountain')) {
+                markStepRunning('map:5mountain');
+            }
+        }
+        
+        // Detect which step is completing
+        if (l.includes('=== end')) {
+            const exitCodeMatch = line.match(/exit code:\s*(\d+)/);
+            const exitCode = exitCodeMatch ? parseInt(exitCodeMatch[1]) : 0;
+            const success = exitCode === 0;
+            
+            if (l.includes('map:1init')) {
+                markStepComplete('map:1init', success);
+            } else if (l.includes('map:2firststep-tiles')) {
+                markStepComplete('map:2firststep-tiles', success);
+            } else if (l.includes('map:3tree-step1')) {
+                markStepComplete('map:3tree-step1', success);
+            } else if (l.includes('map:3tree-step2')) {
+                markStepComplete('map:3tree-step2', success);
+            } else if (l.includes('map:3tree-step3')) {
+                markStepComplete('map:3tree-step3', success);
+            } else if (l.includes('map:4water')) {
+                markStepComplete('map:4water', success);
+            } else if (l.includes('map:5mountain')) {
+                markStepComplete('map:5mountain', success);
+            }
+        }
+        
+        // Detect validation
+        if (l.includes('validating') || l.includes('validation')) {
+            markStepRunning('validation');
+        }
+        if (l.includes('validation') && (l.includes('complete') || l.includes('success') || l.includes('passed'))) {
+            markStepComplete('validation', true);
+        }
+        if (l.includes('validation') && (l.includes('fail') || l.includes('error'))) {
+            markStepComplete('validation', false);
+        }
+    }
+
+    function markStepRunning(stepName) {
+        const stepEl = document.querySelector(`.step-item[data-step="${stepName}"]`);
+        if (!stepEl) return;
+        
+        stepEl.classList.remove('completed', 'failed');
+        stepEl.classList.add('running');
+        stepEl.querySelector('.step-icon').textContent = '🔄';
+        stepEl.querySelector('.step-time').textContent = 'Running...';
+    }
+
+    function markStepComplete(stepName, success) {
+        const stepEl = document.querySelector(`.step-item[data-step="${stepName}"]`);
+        if (!stepEl) return;
+        
+        stepEl.classList.remove('running');
+        stepEl.classList.add(success ? 'completed' : 'failed');
+        stepEl.querySelector('.step-icon').textContent = success ? '✅' : '❌';
+        
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString();
+        stepEl.querySelector('.step-time').textContent = timeStr;
+    }
     }
 
     function classifyLine(line) {
@@ -340,6 +542,9 @@
             const step = detectStep(line);
             if (step) currentStepEl.textContent = step;
 
+            // Update checklist based on log line
+            updateStepChecklist(line);
+
             if (paused) {
                 buffer.push({line, cls});
             } else {
@@ -480,6 +685,46 @@
 
     // Optional: refresh every 5s while viewing this page
     setInterval(fetchHeightmapData, 5000);
+
+    // Queue status polling
+    const queueStatusUrl = "{{ route('game.queue.status', ['mapId' => $mapId]) }}";
+    const queuePendingEl = document.getElementById('queuePending');
+    const queueFailedEl = document.getElementById('queueFailed');
+    const queueCurrentEl = document.getElementById('queueCurrent');
+    
+    function fetchQueueStatus() {
+        fetch(queueStatusUrl)
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.ok) {
+                    queuePendingEl.textContent = data.pending + ' pending';
+                    queuePendingEl.style.color = data.pending > 0 ? '#fbbf24' : '#86efac';
+                    
+                    queueFailedEl.textContent = 'Failed: ' + data.failed;
+                    queueFailedEl.style.color = data.failed > 0 ? '#fca5a5' : '#94a3b8';
+                    
+                    if (data.currentJob) {
+                        const job = data.currentJob;
+                        queueCurrentEl.textContent = `Current: ${job.displayName} (attempts: ${job.attempts})`;
+                    } else if (data.recentFailure) {
+                        queueCurrentEl.textContent = 'Last failure: ' + data.recentFailure.failed_at;
+                        queueCurrentEl.style.color = '#fca5a5';
+                    } else {
+                        queueCurrentEl.textContent = 'No active jobs';
+                        queueCurrentEl.style.color = '#94a3b8';
+                    }
+                }
+            })
+            .catch(err => {
+                queuePendingEl.textContent = 'Error';
+                queueFailedEl.textContent = '';
+                queueCurrentEl.textContent = '';
+            });
+    }
+    
+    // Poll queue status every 2 seconds
+    fetchQueueStatus();
+    setInterval(fetchQueueStatus, 2000);
 
     // Clean up connection when navigating away
     window.addEventListener('beforeunload', function () {

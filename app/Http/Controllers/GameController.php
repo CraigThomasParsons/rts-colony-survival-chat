@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Throwable;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -43,7 +44,7 @@ class GameController extends Controller
             "height" => "required|integer|min:32|max:128",
         ]);
 
-        // Create the Game record
+        // Create the Game record,
         $game = Game::create([
             "name" => $validated["name"],
         ]);
@@ -246,6 +247,7 @@ class GameController extends Controller
     {
         // Keep PHP alive indefinitely for long-running SSE
         @set_time_limit(0);
+
         // Prevent Laravel from buffering output
         if (function_exists('apache_setenv')) {
             @apache_setenv('no-gzip', '1');
@@ -418,10 +420,64 @@ class GameController extends Controller
     }
 
     /**
+     * Return live queue status: pending jobs, failed jobs, current job info.
+     *
+     * @param string $mapId
+     * @return JsonResponse
+     */
+    public function queueStatus(string $mapId): JsonResponse
+    {
+        $pendingCount = DB::table('jobs')->count();
+        $failedCount = DB::table('failed_jobs')->count();
+        
+        // Get the oldest pending job (if any)
+        $currentJob = DB::table('jobs')
+            ->orderBy('id', 'asc')
+            ->first();
+        
+        $jobInfo = null;
+        if ($currentJob) {
+            $payload = json_decode($currentJob->payload, true);
+            $jobInfo = [
+                'id' => $currentJob->id,
+                'queue' => $currentJob->queue,
+                'attempts' => $currentJob->attempts,
+                'displayName' => $payload['displayName'] ?? 'Unknown',
+                'available_at' => date('Y-m-d H:i:s', $currentJob->available_at),
+            ];
+        }
+        
+        // Get most recent failed job for this map
+        $recentFailure = DB::table('failed_jobs')
+            ->where('payload', 'like', '%' . $mapId . '%')
+            ->orderBy('id', 'desc')
+            ->first();
+        
+        $failureInfo = null;
+        if ($recentFailure) {
+            $failureInfo = [
+                'id' => $recentFailure->id,
+                'queue' => $recentFailure->queue,
+                'failed_at' => $recentFailure->failed_at,
+                'exception' => substr($recentFailure->exception, 0, 200) . '...',
+            ];
+        }
+        
+        return response()->json([
+            'ok' => true,
+            'pending' => $pendingCount,
+            'failed' => $failedCount,
+            'currentJob' => $jobInfo,
+            'recentFailure' => $failureInfo,
+        ]);
+    }
+
+    /**
      * Task 3: Start a map (ready -> active) and redirect into the game view.
      */
     public function startMap(Map $map)
     {
+        // I'm not sure if this check for null is necessary, I usually consider that a bug that there isn't a default value.
         if (($map->status ?? null) !== 'ready') {
             return Redirect::route('game.mapgen.progress', ['mapId' => $map->id])
                 ->with('status', "Map {$map->id} is not ready to start (status='{$map->status}').");

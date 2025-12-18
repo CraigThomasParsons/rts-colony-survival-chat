@@ -357,7 +357,7 @@ class CellProcessing
     {
         static $intCallCount;
 
-        if (!isset($intCallCount)) {
+        if (isset($intCallCount) === false) {
             $intCallCount = 1;
 
         } else {

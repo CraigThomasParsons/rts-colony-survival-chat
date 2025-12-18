@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::table('map', function (Blueprint $table) {
             if (!Schema::hasColumn('map', 'status')) {
-                $table->string('status')->default('generating')->after('seed');
+                $table->string('status')->default('pending')->after('seed');
             }
             if (!Schema::hasColumn('map', 'validated_at')) {
                 $table->timestamp('validated_at')->nullable()->after('status');
