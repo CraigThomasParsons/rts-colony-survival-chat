@@ -154,6 +154,10 @@ class GameController extends Controller
         $map->is_generating = true;
         // Task lifecycle: map begins generating here.
         $map->status = 'generating';
+        $map->generation_started_at = now();
+        $map->generation_completed_at = null;
+        $map->failed_at = null;
+        $map->last_completed_step = null;
         $map->validated_at = null;
         $map->validation_errors = null;
         $map->save();
@@ -187,6 +191,7 @@ class GameController extends Controller
                 }
                 $fresh->status = 'failed';
                 $fresh->is_generating = false;
+                $fresh->failed_at = now();
                 $fresh->validation_errors = [
                     'Map generation pipeline failed',
                     $e->getMessage(),

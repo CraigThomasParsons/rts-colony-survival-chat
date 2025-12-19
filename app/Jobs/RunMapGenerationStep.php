@@ -80,6 +80,13 @@ class RunMapGenerationStep implements ShouldQueue
             }
 
             $this->appendLog("=== END {$this->step} (exit code: {$exitCode}) ===");
+
+            // Track last completed step for debugging
+            $map = \App\Models\Map::find($this->mapId);
+            if ($map) {
+                $map->last_completed_step = $this->step;
+                $map->save();
+            }
         } catch (Exception $e) {
             // Record exception details to the log and rethrow so the queue can handle retries / failure hooks.
             $this->appendLog("!!! EXCEPTION during {$this->step} : " . $e->getMessage());

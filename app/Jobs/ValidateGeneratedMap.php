@@ -31,6 +31,7 @@ class ValidateGeneratedMap implements ShouldQueue
 
         // Mark map as validating while we perform checks.
         $map->status = 'validating';
+        $map->last_completed_step = 'validation';
         $map->save();
 
         $result = $validator->validate($map);
@@ -39,9 +40,12 @@ class ValidateGeneratedMap implements ShouldQueue
         if (($result['ok'] ?? false) === true) {
             $map->status = 'ready';
             $map->validation_errors = null;
+            $map->generation_completed_at = Carbon::now();
+            $map->failed_at = null;
         } else {
             $map->status = 'failed';
             $map->validation_errors = $result['errors'] ?? ['validation failed'];
+            $map->failed_at = Carbon::now();
         }
 
         // Always clear generating lock at the end of the pipeline.

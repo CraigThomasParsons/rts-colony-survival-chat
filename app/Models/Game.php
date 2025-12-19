@@ -62,4 +62,12 @@ class Game extends Model
     {
         return $this->hasMany(Colonist::class);
     }
+
+    /**
+     * Get all buildings in the game.
+     */
+    public function buildings(): HasMany
+    {
+        return $this->hasMany(Building::class);
+    }
 }

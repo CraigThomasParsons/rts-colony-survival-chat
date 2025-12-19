@@ -63,7 +63,7 @@
         </style>
     </head>
     <body class="font-sans antialiased theme-dark">
-        <div class="min-h-screen flex flex-col" style="backdrop-filter: blur(2px);">
+        <div class="h-screen flex flex-col overflow-hidden" style="height: 100vh; overflow: hidden; display: flex; flex-direction: column; backdrop-filter: blur(2px);">
             <livewire:navigation-menu />
 
             <!-- Page Heading -->
@@ -76,7 +76,7 @@
             @endif
 
             <!-- Page Content -->
-            <main class="flex-1">
+            <main class="flex-1 relative overflow-hidden flex flex-col">
                 <div class="section">
                     <div class="container">
                         @hasSection('content')

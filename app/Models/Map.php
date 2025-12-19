@@ -40,6 +40,10 @@ class Map extends Model
         'validated_at',
         'started_at',
         'validation_errors',
+        'generation_started_at',
+        'generation_completed_at',
+        'failed_at',
+        'last_completed_step',
     ];
 
     // Allow mass assignment of is_generating lock flag
@@ -47,6 +51,9 @@ class Map extends Model
         'is_generating' => 'boolean',
         'validated_at' => 'datetime',
         'started_at' => 'datetime',
+        'generation_started_at' => 'datetime',
+        'generation_completed_at' => 'datetime',
+        'failed_at' => 'datetime',
         'validation_errors' => 'array',
     ];
 
@@ -56,5 +63,10 @@ class Map extends Model
     public function games(): BelongsToMany
     {
         return $this->belongsToMany(Game::class, 'game_map');
+    }
+
+    public function tiles()
+    {
+        return $this->hasMany(Tile::class);
     }
 }

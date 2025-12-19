@@ -16,7 +16,7 @@ new class extends Component {
 };
 ?>
 
-<nav x-data="{ open: false }" class="topnav">
+<nav x-data="{ open: false }" class="topnav" style="position: sticky; top: 0; z-index: 50; width: 100%; backdrop-filter: blur(10px); background-color: rgba(15, 20, 36, 0.9);">
     <!-- Primary Navigation Menu -->
     <div style="max-width: 1280px; margin: 0 auto; padding: 0 1rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; height: 4rem;">

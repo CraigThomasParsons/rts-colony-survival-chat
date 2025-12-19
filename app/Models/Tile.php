@@ -25,4 +25,13 @@ class Tile extends Model
     protected $keyType = 'string';
 
     public $incrementing = false;
+
+    public function tileType()
+    {
+        return $this->belongsTo(TileType::class, 'tileType_id');
+    }
+
+    public function map() {
+        return $this->belongsTo(Map::class);
+    }
 }

@@ -14,14 +14,25 @@ rsync -az --delete \
   --exclude='.git/' \
   --exclude='node_modules/' \
   --exclude='storage/logs/' \
+  --exclude='storage/framework/' \
+  --exclude='storage/app/' \
   --exclude='bootstrap/cache/' \
   --exclude='.env' \
   --exclude='vendor/' \
   "$SRC" "$DST"
 
+# Check for --quick flag
+QUICK=false
+for arg in "$@"; do
+  if [ "$arg" == "--quick" ]; then
+    QUICK=true
+    shift
+  fi
+done
+
 log "Fixing permissions..."
-chown -R craigpar:http "$DST"
-chmod -R 775 "$DST/storage" "$DST/bootstrap/cache"
+chown -R craigpar:http "$DST" || true
+chmod -R 775 "$DST/storage" "$DST/bootstrap/cache" || true
 
 cd "$DST"
 
@@ -29,22 +40,29 @@ cd "$DST"
 # Build steps
 # -------------------------
 
-if [ -f package.json ]; then
-  log "Running frontend build..."
-  npm run build || log "⚠️ frontend build failed (continuing)"
+if [ "$QUICK" = true ]; then
+  log "Skipping frontend build (--quick)"
+else
+  if [ -f package.json ]; then
+    log "Running frontend build..."
+    npm run build || log "⚠️ frontend build failed (continuing)"
+  fi
 fi
 
 # -------------------------
 # Laravel steps
 # -------------------------
 
-log "Running migrations..."
-
-if php artisan migrate --force; then
-  log "Migrations successful."
+if [ "$QUICK" = true ]; then
+  log "Skipping migrations (--quick)"
 else
-  log "❌ Migrations FAILED — check DB or env"
-  exit 1
+  log "Running migrations..."
+  if php artisan migrate --force; then
+    log "Migrations successful."
+  else
+    log "❌ Migrations FAILED — check DB or env"
+    exit 1
+  fi
 fi
 
 
@@ -55,8 +73,20 @@ php artisan optimize:clear || true
 # Restart background workers
 # -------------------------
 
-log "Restarting queue workers..."
-systemctl --user restart rtschat-queue.service || log "⚠️ queue restart failed"
+if [ "$QUICK" = true ]; then
+  if [ -f "/usr/bin/supervisorctl" ]; then
+      # If using supervisor, checking/restarting might be fast or slow. 
+      # Systemd user service is usually fast.
+      :
+  fi
+  # We still restart plugins or workers if code changed?
+  # Usually code changes require worker restart.
+  log "Restarting queue workers..."
+  systemctl --user restart rtschat-queue.service || log "⚠️ queue restart failed"
+else 
+  log "Restarting queue workers..."
+  systemctl --user restart rtschat-queue.service || log "⚠️ queue restart failed"
+fi
 
 log "Scheduler timer remains active (no restart needed)"
 
