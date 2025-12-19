@@ -1,0 +1,12 @@
+[Unit]
+Description=Auto-sync code to /srv/rts-colony-chat
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/craigpar/Code/rts-colony-chat/scripts/watch-sync.sh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
