@@ -11,6 +11,16 @@ php artisan map:4water
 
 3. Review `resources/views/mapgen/` for a minimal UI to preview progress (optional).
 
+### 🎵 Bandcamp Library Downloader
+
+This repository also includes a Bandcamp music library downloader for ArchLinux users. See [BANDCAMP_README.md](BANDCAMP_README.md) for details.
+
+**Quick start:**
+```bash
+./install_bandcamp.sh
+python3 bandcamp_downloader.py -u YOUR_USERNAME -c cookies.json
+```
+
 ### Notes on integration
 - The mapgen uses its own MapDatabase and Cell models under `app/Helpers/MapDatabase/`. If you wish to map these directly to your game's `tiles` and `resource_nodes` tables, I can add an importer that converts generated Cells into Eloquent `Tile` and `ResourceNode` rows. Tell me if you'd like me to implement that importer (recommended).
 
