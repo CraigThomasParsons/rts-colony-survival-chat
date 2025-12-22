@@ -35,7 +35,7 @@ class BandcampDownloader:
         """
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
         })
         
         # Set output directory
@@ -77,7 +77,13 @@ class BandcampDownloader:
         Returns:
             List of album/track URLs
         """
-        collection_url = f"https://bandcamp.com/{username}"
+        # Try multiple URL formats for collection
+        collection_urls = [
+            f"https://bandcamp.com/{username}/collection",
+            f"https://{username}.bandcamp.com"
+        ]
+        
+        collection_url = collection_urls[0]
         logger.info(f"Fetching collection from {collection_url}")
         
         try:
@@ -89,8 +95,10 @@ class BandcampDownloader:
             # Find collection items
             collection_items = []
             
-            # Look for collection grid items
-            items = soup.select('.collection-item-container')
+            # Look for collection grid items with multiple fallback selectors
+            items = (soup.select('.collection-item-container') or 
+                    soup.select('.collection-item') or
+                    soup.select('[class*="collection"]'))
             
             for item in items:
                 link = item.select_one('a')
@@ -124,8 +132,11 @@ class BandcampDownloader:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # Look for download button/link
-            download_link = soup.select_one('a.download-link, a[href*="download"]')
+            # Look for download button/link with specific selectors
+            download_link = (soup.select_one('a.download-link') or
+                           soup.select_one('button.download-link') or
+                           soup.select_one('a[href*="/download/"]') or
+                           soup.select_one('a[title*="Download"]'))
             
             if download_link and download_link.get('href'):
                 download_url = download_link['href']

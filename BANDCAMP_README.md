@@ -28,8 +28,15 @@ sudo pacman -S python python-pip
 
 2. Clone this repository or download the script:
 ```bash
+# Note: This Bandcamp downloader is part of a larger project repository
 git clone https://github.com/CraigThomasParsons/rts-colony-survival-chat.git
 cd rts-colony-survival-chat
+
+# Or download just the necessary files:
+# - bandcamp_downloader.py
+# - requirements.txt
+# - BANDCAMP_README.md
+# - cookies.json.example
 ```
 
 3. Install Python dependencies:
