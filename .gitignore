@@ -32,3 +32,11 @@ auth.json
 patches
 packages/*
 mockups
+
+# Bandcamp downloader
+cookies.json
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.log
