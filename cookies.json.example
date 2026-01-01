@@ -1,0 +1,12 @@
+[
+  {
+    "name": "identity",
+    "value": "REPLACE_WITH_YOUR_IDENTITY_TOKEN",
+    "domain": ".bandcamp.com"
+  },
+  {
+    "name": "js_logged_in",
+    "value": "1",
+    "domain": ".bandcamp.com"
+  }
+]
