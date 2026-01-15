@@ -25,14 +25,14 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $component = Volt::test('pages.auth.login')
-            ->set('form.email', $user->email)
-            ->set('form.password', 'password');
+            ->set('email', $user->email)
+            ->set('password', 'password');
 
         $component->call('login');
 
         $component
             ->assertHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('control-panel', absolute: false));
 
         $this->assertAuthenticated();
     }
@@ -42,8 +42,8 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $component = Volt::test('pages.auth.login')
-            ->set('form.email', $user->email)
-            ->set('form.password', 'wrong-password');
+            ->set('email', $user->email)
+            ->set('password', 'wrong-password');
 
         $component->call('login');
 
@@ -60,7 +60,7 @@ class AuthenticationTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = $this->get('/dashboard');
+        $response = $this->get(route('control-panel'));
 
         $response
             ->assertOk()

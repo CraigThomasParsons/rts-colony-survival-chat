@@ -34,9 +34,9 @@ class MapStatusesSeeder extends Seeder
             ]);
         }
 
-        if (MapStatus::firstWhere('name', MapStatus::CELL_PROCESSING_STOPPED) === null ) {
+        if (MapStatus::firstWhere('name', MapStatus::CELL_PROCESSING_FINNISHED) === null ) {
             DB::table('map_statuses')->insert([
-                'name' => MapStatus::CELL_PROCESSING_STOPPED,
+                'name' => MapStatus::CELL_PROCESSING_FINNISHED,
                 'description' => 'Cell processing completed.',
                 'created_at' => $nowish->format('Y-m-d H:i:s'),
                 'updated_at' => $nowish->format('Y-m-d H:i:s')
@@ -46,6 +46,24 @@ class MapStatusesSeeder extends Seeder
         if (MapStatus::firstWhere('name', MapStatus::TILE_PROCESSING_STARTED) === null ) {
             DB::table('map_statuses')->insert([
                 'name' => MapStatus::TILE_PROCESSING_STARTED,
+                'description' => 'Tile processing started.',
+                'created_at' => $nowish->format('Y-m-d H:i:s'),
+                'updated_at' => $nowish->format('Y-m-d H:i:s')
+            ]);
+        }
+
+        if (MapStatus::firstWhere('name', MapStatus::TILE_PROCESSING_STOPPED) === null ) {
+            DB::table('map_statuses')->insert([
+                'name' => MapStatus::TILE_PROCESSING_STOPPED,
+                'description' => 'Tile processing completed.',
+                'created_at' => $nowish->format('Y-m-d H:i:s'),
+                'updated_at' => $nowish->format('Y-m-d H:i:s')
+            ]);
+        }
+
+        if (MapStatus::firstWhere('name', MapStatus::TREE_FIRST_STEP) === null ) {
+            DB::table('map_statuses')->insert([
+                'name' => MapStatus::TREE_FIRST_STEP,
                 'description' => 'Running first step in tree algorithm.',
                 'created_at' => $nowish->format('Y-m-d H:i:s'),
                 'updated_at' => $nowish->format('Y-m-d H:i:s')

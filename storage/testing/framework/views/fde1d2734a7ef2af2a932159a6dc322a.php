@@ -1,0 +1,1 @@
+<?php /**PATH /home/craigpar/Code/rts-colony-chat/resources/views/mapgen/tiletypeclassedge.blade.php ENDPATH**/ ?>

@@ -1,0 +1,16 @@
+[Unit]
+Description=Watch dependency manifests and run installs on change
+
+[Path]
+PathChanged=/home/craigpar/Code/rts-colony-chat/composer.json
+PathChanged=/home/craigpar/Code/rts-colony-chat/composer.lock
+PathChanged=/home/craigpar/Code/rts-colony-chat/package.json
+PathChanged=/home/craigpar/Code/rts-colony-chat/package-lock.json
+PathChanged=/home/craigpar/Code/rts-colony-chat/pnpm-lock.yaml
+PathChanged=/home/craigpar/Code/rts-colony-chat/yarn.lock
+
+# Trigger service
+Unit=colony-deps.service
+
+[Install]
+WantedBy=default.target

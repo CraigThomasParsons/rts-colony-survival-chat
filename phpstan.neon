@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+    level: 6
+    treatPhpDocTypesAsCertain: false
+    universalObjectCratesClasses:
+        - Illuminate\Support\Fluent
+    tmpDir: storage/framework/cache/phpstan
+
+services:
+    -
+        class: PHPStan\Custom\Rules\NoNewInsideServicesRule
+        tags:
+            - phpstan.rules.rule

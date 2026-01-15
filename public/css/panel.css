@@ -1,0 +1,92 @@
+/* Shared dark panel theme and terminal styles */
+
+/* Base dark background and typography */
+body.theme-dark, body {
+  /* Warcraft-flavored backdrop */
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(16,19,31,0.85) 0%, rgba(5,6,10,1) 60%), #0b0e1a;
+  color: #e5e7eb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.panel {
+  width: min(1024px, 100%);
+  margin: 2rem auto;
+  background: linear-gradient(180deg, rgba(12,14,22,0.98) 0%, rgba(10,12,18,0.98) 100%);
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 70px rgba(0,0,0,0.6), inset 0 0 20px rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255,215,0,0.18); /* subtle gold edge */
+}
+
+.panel h1, .panel h2, .panel h3 {
+  color: #f3f4f6;
+  margin: 0 0 0.75rem 0;
+}
+
+.panel .muted { color: #9ca3af; }
+.panel .btn { display:inline-flex; align-items:center; border-radius:10px; padding:0.5rem 0.9rem; font-size:0.9rem; text-decoration:none; transition:all .2s ease; }
+.panel .btn-primary { background: linear-gradient(135deg,#4f46e5 0%, #8b5cf6 100%); color:#fff; border: 1px solid rgba(255,255,255,0.08); }
+.panel .btn-primary:hover { filter: brightness(1.05); }
+.panel .btn-muted { background:#111827; color:#e5e7eb; border:1px solid rgba(255,215,0,0.18); }
+.panel .btn-muted:hover { background:#1f2937; }
+
+/* Retro terminal container */
+.terminal {
+  background: #000;
+  color: #d1ffe0;
+  border-radius: 12px;
+  border: 1px solid rgba(0,255,128,0.18);
+  box-shadow: inset 0 0 24px rgba(0,255,128,0.08), 0 10px 40px rgba(0,0,0,0.5);
+  position: relative;
+}
+.terminal::after { /* CRT scanline effect */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,255,128,0.02),
+    rgba(0,255,128,0.02) 2px,
+    rgba(0,0,0,0.15) 2px,
+    rgba(0,0,0,0.15) 3px
+  );
+  pointer-events: none;
+}
+.terminal .log {
+  max-height: 60vh;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  padding: 0.75rem 0.75rem 0.6rem 0.75rem;
+}
+.terminal .log .text-red-400 { color:#fca5a5; }
+.terminal .log .text-yellow-300 { color:#fde68a; }
+.terminal .log .text-green-300 { color:#86efac; }
+
+/* Status grid cards */
+.status-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:1rem; margin-bottom:1rem; }
+.status-card { background:#0f1424; border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:0.75rem; }
+.status-card { background: linear-gradient(180deg,#0f1424 0%, #0b1020 100%); border:1px solid rgba(255,215,0,0.18); }
+.status-title { font-size:0.75rem; color:#9ca3af; }
+.status-value { margin-top:0.25rem; font-size:0.95rem; font-weight:600; }
+.status-sub { margin-top:0.5rem; font-size:0.72rem; color:#6b7280; }
+
+/* Top navigation (Warcraft vibe) */
+.topnav {
+  backdrop-filter: blur(6px);
+  background: linear-gradient(0deg, rgba(12,14,22,0.92) 0%, rgba(10,12,18,0.92) 100%);
+  border-bottom: 1px solid rgba(255,215,0,0.22);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+.topnav .title {
+  color: #f4f1e6; /* parchment-ish */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+.topnav .link { color:#d6d9ff; }
+.topnav .link:hover { color:#ffffff; }
+.avatar {
+  border: 1px solid rgba(255,215,0,0.28);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}

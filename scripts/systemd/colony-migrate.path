@@ -1,0 +1,12 @@
+[Unit]
+Description=Watch database/migrations and run migrations on change
+
+[Path]
+# Directory metadata changes when files are added/removed
+PathModified=/home/craigpar/Code/rts-colony-chat/database/migrations
+
+# Trigger service
+Unit=colony-migrate.service
+
+[Install]
+WantedBy=default.target

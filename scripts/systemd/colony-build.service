@@ -1,0 +1,10 @@
+[Unit]
+Description=Rebuild and restart docker compose (user)
+
+[Service]
+Type=oneshot
+# Adjust if your repo lives elsewhere
+WorkingDirectory=/home/craigpar/Code/rts-colony-chat
+# If using rootless Docker, export its socket:
+# Environment=DOCKER_HOST=unix:///run/user/%U/docker.sock
+ExecStart=/usr/bin/docker compose up -d --build

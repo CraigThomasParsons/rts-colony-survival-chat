@@ -42,3 +42,33 @@ Sunday July 6th 2025 - 2025-07-06 15:36:46
 ---------------------------------------------
 Must get MongoDB working. Eventually when I move to doing this on other computers I'll make sure the
 docker-compose file does most of this for me
+
+
+
+Sunday November 30th
+
+
+Mr. A.I. says:
+Added a dynamic Next Step button to editor.blade.php 
+that appears based on the current MapStatus state and
+links to the appropriate next processing route.
+Mapping covers all existing constants through water processing.
+No other code altered.
+
+Summary of mapping:
+
+CREATED_EMPTY / CELL_PROCESSING_STARTED → step1
+CELL_PROCESSING_FINNISHED → step2
+TILE_PROCESSING_STARTED → step2
+TILE_PROCESSING_STOPPED → tree step3 (runThirdStep)
+TREE_FIRST_STEP → treeStep2
+TREE_2ND_COMPLETED → treeStep3
+TREE_3RD_STARTED / TREE_GEN_COMPLETED → step4 (water)
+If you add new states later (e.g., post-water or mountain completion), just extend the $stateToNext array.
+
+Let me know if you’d like:
+
+Auto-advance (queue jobs instead of manual clicks)
+A disabled state indicator while a step is running
+Integration with a lock/status poll to hide the button mid-process
+Ready for next instruction.

@@ -12,20 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tile', function (Blueprint $table) {
-            $table->integer('id', true);
+            $table->uuid('id')->primary();
             $table->string('name', 32);
             $table->string('description', 128);
             $table->integer('coordinateX');
             $table->integer('coordinateY');
             $table->integer('mapCoordinateX');
             $table->integer('mapCoordinateY');
-            $table->integer('cell_id');
-            $table->integer('map_id');
+            $table->uuid('cell_id');
+            $table->uuid('map_id');
             $table->integer('tileType_id')
                 ->index('tiletype_id')
                 ->default(1);
 
             $table->index(['cell_id', 'map_id'], 'cell_id');
+            $table->foreign('map_id')->references('id')->on('map')->cascadeOnDelete();
+            $table->foreign('cell_id')->references('id')->on('cell')->cascadeOnDelete();
         });
     }
 

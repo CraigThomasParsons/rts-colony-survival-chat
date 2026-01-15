@@ -17,14 +17,14 @@ class MapModel
      *
      * @var $data
      */
-    protected $data;
+    protected $data = [];
 
     /**
      * array of errors
      *
      * @var $error
      */
-    protected $error;
+    protected $error = [];
 
     /**
      * Map Status
@@ -51,10 +51,8 @@ class MapModel
     public function save()
     {
         // Try to save the map record.
-        if ((isset($this->data['id']) === true) && ($this->data['id'] > 0)) {
-            $primaryKey = $this->data['id'];
-
-            $map = Map::find($primaryKey);
+        if (!empty($this->data['id'])) {
+            $map = Map::find($this->data['id']);
 
         } else {
             // No map found, but we should have at least a unique name.
@@ -68,7 +66,7 @@ class MapModel
 
         $map->save();
 
-        return $primaryKey;
+        return $map->id;
     }
 
     /**
@@ -232,18 +230,18 @@ class MapModel
 
     /**
      * Magical
+     *
      * If a member variable isn't found then use data array.
      */
     public function __set($variableName, $value)
     {
-        if (array_key_exists($variableName, $this->data)) {
-            
-            // Function set exists in parent class db_record.
+        $dataArray = $this->data;
+
+        if (array_key_exists($variableName, $dataArray)) {
             return $this->set($variableName, $value);
-        } else {
-            
-            return $this->$variableName = $value;
         }
+        
+        return $this->$variableName = $value;
     }
 
     /**
@@ -262,6 +260,7 @@ class MapModel
     public function insert($str_class, $properties)
     {
         //$object = Map::create($str_class, $properties);
+
         //return $object->save;
     }
 

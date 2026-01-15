@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Helpers\Processing;
 
-use Generator\helpers\ModelHelpers\Tile;
+use App\Helpers\MapDatabase\WaterProcessingMapDatabaseLayer;
+use App\Helpers\ModelHelpers\Tile;
 
 /**
  * Should go into further details with water tiles.
@@ -17,20 +19,28 @@ class WaterProcessing
 
     protected $map;
     protected $waterTileLocations;
+    protected $waterProcessingDatabaseLayer;
 
     /**
-     * Simple constructor
-     *
-     * @param map $map
+     * Constructor - no dependencies, use setters instead.
      */
-    public function __construct($waterProcessingDatabaseLayer, $map = null, $waterTileLocations = null)
+    public function __construct()
     {
-        $this->map = $map;
-        $this->waterTileLocations = $waterTileLocations;
+        // Intentionally empty - use setter injection
+    }
 
-        // This is just a good buffer to make sure that next time I decide to switch database types
-        // I don't have such a hard time.
+    /**
+     * Sets the value of waterProcessingDatabaseLayer.
+     *
+     * @param mixed $waterProcessingDatabaseLayer the water processing database layer
+     *
+     * @return self
+     */
+    public function setWaterProcessingDatabaseLayer($waterProcessingDatabaseLayer)
+    {
         $this->waterProcessingDatabaseLayer = $waterProcessingDatabaseLayer;
+
+        return $this;
     }
 
     /**

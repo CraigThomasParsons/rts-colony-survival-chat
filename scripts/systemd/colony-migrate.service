@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Laravel migrations (user)
+# Optionally wait for your main compose service name if you made one as a user unit (e.g., colony.service)
+# Wants=colony.service
+# After=colony.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/craigpar/Code/rts-colony-chat
+# For rootless Docker, uncomment:
+# Environment=DOCKER_HOST=unix:///run/user/%U/docker.sock
+ExecStart=/usr/bin/docker compose exec -T app php artisan migrate --force

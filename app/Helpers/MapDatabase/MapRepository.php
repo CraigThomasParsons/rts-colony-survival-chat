@@ -7,6 +7,7 @@ use App\Helpers\MapDatabase\MapModel as Map;
 use App\Models\Map as EloquentModelMap;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Keep helper functions here for fetching data from the Map database related to Cells.
@@ -17,13 +18,13 @@ class MapRepository
      * Check for a tile records in the database with mapId equal to 1.
      * if it doesn't exist return false
      *
-     * @param integer $mapId The map record's primary key
+    * @param string $mapId The map record's primary key
      *
      * @return Tiles
      */
     public static function findAllTiles($mapId)
     {
-        $query = DB::table('tile')->where('map_id', '=', intval($mapId));
+    $query = DB::table('tile')->where('map_id', '=', $mapId);
         $arrTile = $query->get();
 
         if (count($arrTile) > 0) {
@@ -47,17 +48,38 @@ class MapRepository
      * X and Y indices are swapped to make it easier to check if a column exists.
      * if it doesn't exist return false
      *
-     * @param integer $mapId The map record's primary key
+    * @param string $mapId The map record's primary key
      *
      * @return Tiles
      */
     public static function findAllTilesReversedAxis($mapId)
     {
-        $query = DB::table('tile')->where('map_id', '=', intval($mapId));
+        $query = DB::table('tile')->where('map_id', '=', $mapId);
         $arrTile = $query->get();
+
+        // Diagnostic logging
+        $count = count($arrTile);
+        Log::info("MapRepository::findAllTilesReversedAxis count={$count} for map {$mapId}");
+        if ($count > 0) {
+            $first = $arrTile[0] ?? null;
+            if ($first) {
+                Log::info('Sample tile', [
+                    'id' => $first->id ?? null,
+                    'map_id' => $first->map_id ?? null,
+                    'cell_id' => $first->cell_id ?? null,
+                    'mapCoordinateX' => $first->mapCoordinateX ?? null,
+                    'mapCoordinateY' => $first->mapCoordinateY ?? null,
+                    'tileType_id' => $first->tileType_id ?? null,
+                    'name' => $first->name ?? null,
+                ]);
+            }
+        } else {
+            Log::warning("No tiles found in DB for map {$mapId} (reversed axis)");
+        }
 
         if (count($arrTile) > 0) {
             // This call $query->get() returns an array.
+            $objTiles = [];  // Initialize array to prevent undefined variable
             foreach ($arrTile as $key => $arrValues) {
                 $tile = new Tile();
                 $tile->populateFromArray($arrValues);
@@ -65,9 +87,14 @@ class MapRepository
             }
 
             // Return the tile record that was returned from the database.
+            // Log grid dims for sanity
+            $rows = count($objTiles);
+            $cols = $rows ? count(reset($objTiles)) : 0;
+            Log::info("Constructed reversed tile grid rows={$rows} cols={$cols} for map {$mapId}");
             return $objTiles;
         } else {
             // Return a new tile records.
+            Log::warning("MapRepository::findAllTilesReversedAxis returning false for map {$mapId}");
             return false;
         }
     }
@@ -76,7 +103,7 @@ class MapRepository
      * Check for a cell records in the database with mapId equal to 1.
      * if it doesn't exist return false
      *
-     * @param integer $mapId The map record's primary key
+    * @param string $mapId The map record's primary key
      *
      * @return Cells
      */
@@ -85,7 +112,7 @@ class MapRepository
         $objCells = array();
         $arrCell = array();
 
-        $query = DB::table('cell')->where('map_id', '=', intval($mapId));
+    $query = DB::table('cell')->where('map_id', '=', $mapId);
 
         $arrCell = $query->get();
 
@@ -116,7 +143,7 @@ class MapRepository
         $arrCell = array();
 
         $query = DB::table('cell')
-            ->where('map_id', '=', intval($mapId))
+            ->where('map_id', '=', $mapId)
             ->where('name', '=', 'Trees');
 
         $arrCell = $query->get();
@@ -142,15 +169,16 @@ class MapRepository
      * Check for a tile records in the database with mapId equal to 1.
      * and where the Tile is water tile.
      *
-     * @param integer $mapId The map record's primary key
+    * @param string $mapId The map record's primary key
      *
      * @return Tiles
      */
     public static function findAllWaterTiles($mapId)
     {
         $query = DB::table('tile')
-            ->where('map_id', '=', intval($mapId))
-            ->where('tileTypeId', '=', 3);
+            ->where('map_id', '=', $mapId)
+            // Column name in schema is tileType_id, not tileTypeId
+            ->where('tileType_id', '=', 3);
 
         $arrTile = $query->get();
 
@@ -175,15 +203,16 @@ class MapRepository
      * and where the Tile is water tile.
      * Just return coordinates.
      *
-     * @param integer $mapId The map record's primary key
+    * @param string $mapId The map record's primary key
      *
      * @return Tiles
      */
     public static function findAllWaterTileCoordinates($mapId)
     {
         $query = DB::table('tile')
-            ->where('map_id', '=', intval($mapId))
-            ->where('tileTypeId', '=', 3);
+            ->where('map_id', '=', $mapId)
+            // Column name in schema is tileType_id, not tileTypeId
+            ->where('tileType_id', '=', 3);
         $arrTile = $query->get();
 
         $coordinatesWaterTiles = array();
@@ -191,7 +220,8 @@ class MapRepository
         if (count($arrTile) > 0) {
             // This call $query->get() returns an array.
             foreach ($arrTile as $key => $arrValues) {
-                $coordinatesWaterTiles[$arrValues['mapCoordinateX']][$arrValues['mapCoordinateY']] = 1;
+                // $arrValues is a stdClass; access with ->property
+                $coordinatesWaterTiles[$arrValues->mapCoordinateX][$arrValues->mapCoordinateY] = 1;
             }
 
             // Return the tile coordinates that was returned from the database.
@@ -205,30 +235,13 @@ class MapRepository
     /**
      * Check to see if there is a map record already there.
      *
-     * @param integer $mapId The map record's primary key
+    * @param string $mapId The map record's primary key
      *
      * @return map
      */
     public static function findFirst($mapId)
     {
-        $query = EloquentModelMap::find($mapId);
-
-        $arrMap = $query->get()->toArray();
-    
-        if (count($arrMap) > 0) {
-
-            foreach ($arrMap as $key => $arrValues) {
-                $Map = new Map();
-                $Map->populateFromArray($arrValues);
-            }
-
-            // Return the map record that was returned from the database.
-            return $Map;
-
-        } else {
-            // Return a new cell record.
-            return false;
-        }
+        return EloquentModelMap::find($mapId);
     }
 
     /**
@@ -242,7 +255,7 @@ class MapRepository
         $arrCell = array();
 
         $query = DB::table('cell')
-            ->where('map_id', '=', intval($mapId))
+            ->where('map_id', '=', $mapId)
             ->where('name', '=', 'Impassable Rocks');
         if ($mountainLine != null) {
             $query->where('height', '>', intval($mountainLine));

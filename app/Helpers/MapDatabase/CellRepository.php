@@ -14,7 +14,7 @@ class CellRepository
      * Check for a cell record in the database,
      * if it doesn't exist return a new one.
      *
-     * @param integer $mapId       The map record's primary key
+    * @param string $mapId       The map record's primary key
      * @param integer $coordinateX The x-axis co-ordinate
      * @param integer $coordinateY The y-axis co-ordinate
      *
@@ -25,7 +25,7 @@ class CellRepository
         $query = DB::table('cell')
             ->where('coordinateX', '=', intval($coordinateX))
             ->where('coordinateY', '=', intval($coordinateY))
-            ->where('map_id', '=', intval($mapId));
+            ->where('map_id', '=', $mapId);
         
         $cells = $query->get();
 
@@ -40,46 +40,47 @@ class CellRepository
             return $Cell;
         } else {
             // Return a new cell record.
-            return new Cell()
-            ->setMapId(intval($mapId))
-            ->setCoordinateX(intval($coordinateX))
-            ->setCoordinateY(intval($coordinateY));
+            return (new Cell())
+                ->setMapId($mapId)
+                ->setCoordinateX(intval($coordinateX))
+                ->setCoordinateY(intval($coordinateY));
         }
     }
 
-    /**
-     * Check for a cell record in the database,
-     * if it doesn't exist return a new one.
-     *
-     * @param integer $mapId       The map record's primary key
-     * @param integer $coordinateX The x-axis co-ordinate
-     * @param integer $coordinateY The y-axis co-ordinate
-     *
-     * @return Cell
-     */
-    public static function findMongoCellsByCoordinates($mapId, $coordinateX, $coordinateY)
-    {
-        $query = DB::connection('mongo')
-            ->collection('Cell')
-            ->where('coordinateX', '=', intval($coordinateX))
-            ->where('coordinateY', '=', intval($coordinateY))
-            ->where('mapId', '=', intval($mapId));
+    // /**
+    //  * I commented this out as we are not using MongoDB currently.
+    //  * Check for a cell record in the database,
+    //  * if it doesn't exist return a new one.
+    //  *
+    // * @param string $mapId       The map record's primary key
+    //  * @param integer $coordinateX The x-axis co-ordinate
+    //  * @param integer $coordinateY The y-axis co-ordinate
+    //  *
+    //  * @return Cell
+    //  */
+    // public static function findMongoCellsByCoordinates($mapId, $coordinateX, $coordinateY)
+    // {
+    //     $query = DB::connection('mongo')
+    //         ->collection('Cell')
+    //         ->where('coordinateX', '=', intval($coordinateX))
+    //         ->where('coordinateY', '=', intval($coordinateY))
+    //         ->where('mapId', '=', $mapId);
 
-        $arrCell = $query->get();
+    //     $arrCell = $query->get();
 
-        if (count($arrCell) > 0) {
+    //     if (count($arrCell) > 0) {
 
-            // $query->get() unfortunately returns an array.
-            foreach ($arrCell as $key => $arrValues) {
-                $Cell = new Cell();
-                $Cell->populateFromArray($arrValues);
-            }
+    //         // $query->get() unfortunately returns an array.
+    //         foreach ($arrCell as $key => $arrValues) {
+    //             $Cell = new Cell();
+    //             $Cell->populateFromArray($arrValues);
+    //         }
 
-            // Return the cell record that was returned from the database.
-            return $Cell;
-        } else {
-            // Return a new cell record.
-            return new Cell();
-        }
-    }
+    //         // Return the cell record that was returned from the database.
+    //         return $Cell;
+    //     } else {
+    //         // Return a new cell record.
+    //         return new Cell();
+    //     }
+    // }
 }

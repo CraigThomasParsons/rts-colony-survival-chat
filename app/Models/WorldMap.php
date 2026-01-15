@@ -9,7 +9,7 @@ class WorldMap extends Model
 {
     use HasFactory;
 
-    protected $table = 'maps';
+    protected $table = 'map';
 
     protected $fillable = [
         'game_id',

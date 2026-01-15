@@ -24,7 +24,7 @@ class TileRepository
      *
      * Will need to write some validation into this function if more than one item is returned.
      *
-     * @param integer $mapId       The map record's primary key
+    * @param string $mapId       The map record's primary key
      * @param integer $coordinateX The x-axis co-ordinate
      * @param integer $coordinateY The y-axis co-ordinate
      *
@@ -32,10 +32,10 @@ class TileRepository
      */
     public static function findByMongoMapCoordinates($mapId, $mapCoordinateX, $mapCoordinateY)
     {
-        $query = DB::connection('mongo')->collection('Tile')
-        ->where('mapCoordinateX', '=', intval($mapCoordinateX))
-        ->where('mapCoordinateY', '=', intval($mapCoordinateY))
-        ->where('mapId', '=', intval($mapId));
+    $query = DB::connection('mongo')->collection('Tile')
+    ->where('mapCoordinateX', '=', intval($mapCoordinateX))
+    ->where('mapCoordinateY', '=', intval($mapCoordinateY))
+    ->where('mapId', '=', $mapId);
 
         $arrTiles = $query->get();
 
@@ -64,7 +64,7 @@ class TileRepository
      *
      * Will need to write some validation into this function if more than one item is returned.
      *
-     * @param integer $mapId       The map record's primary key
+    * @param string $mapId       The map record's primary key
      * @param integer $coordinateX The x-axis co-ordinate
      * @param integer $coordinateY The y-axis co-ordinate
      *
@@ -75,7 +75,7 @@ class TileRepository
         $query = DB::table('tile')
             ->where('mapCoordinateX', '=', intval($mapCoordinateX))
             ->where('mapCoordinateX', '=', intval($mapCoordinateY))
-            ->where('map_id', '=', intval($mapId));
+            ->where('map_id', '=', $mapId);
         
         $tiles = $query->get();
 
@@ -89,10 +89,10 @@ class TileRepository
             //return new Tile();
         } else {
             // Return a new cell record.
-            return new Tile()
-            ->setMapId(intval($mapId))
-            ->setMapCoordinateX(intval($mapCoordinateX))
-            ->setMapCoordinateY(intval($mapCoordinateY));
+            return (new Tile())
+                ->setMapId($mapId)
+                ->setMapCoordinateX(intval($mapCoordinateX))
+                ->setMapCoordinateY(intval($mapCoordinateY));
         }
     }
 }

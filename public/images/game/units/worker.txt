@@ -1,0 +1,2 @@
+This placeholder indicates missing worker.png image asset.
+Expected path: /images/game/units/worker.png

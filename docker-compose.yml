@@ -1,161 +1,170 @@
-#version: "3.9"
-
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: rts-app
-    volumes:
-      - ./:/var/www/html
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    environment:
-      HOST_UID: 1000
-      HOST_GID: 1000
-      APP_ENV: local
-      APP_DEBUG: true
-
-      # Database
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: colony
-      DB_USERNAME: root
-      DB_PASSWORD: secret
-
-      # Queue
-      QUEUE_CONNECTION: database
-
-      # OpenAI / GPT Patch System
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_MODEL: gpt-4.1
-
-      # Vite Configuration
-      VITE_HOST: 0.0.0.0
-    networks:
-      - rtsnet
-
-  vite:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: rts-vite
-    command: npm run dev
-    volumes:
-      - ./:/var/www/html
-    ports:
-      - "5173:5173"
-    networks:
-      - rtsnet
-
-  nginx:
-    image: nginx:1.27
-    container_name: rts-nginx
-    ports:
-      - "8080:80"
-    volumes:
-      - ./:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
-    networks:
-      - rtsnet
-
-  mysql:
-    image: mysql:8.0
-    container_name: rts-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: colony
-    volumes:
-      - mysqldata:/var/lib/mysql
-    ports:
-      - "3307:3306"
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - rtsnet
-
-  redis:
-    image: redis:7
-    container_name: rts-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - rtsnet
-
-  queue:
-    build:
-      context: .
-      dockerfile: Dockerfile-queue
-    container_name: rts-queue
-    #command: >
-    #  sh -c "wait-for-mysql && php artisan queue:work --verbose --tries=3 --timeout=90"
-    #command: ["/usr/local/bin/wait-for-mysql", "--", "php", "artisan", "queue:work", "--verbose", "--tries=3", "--timeout=90"]
-    volumes:
-      - ./:/var/www/html
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: colony
-      DB_USERNAME: root
-      DB_PASSWORD: secret
-      QUEUE_CONNECTION: database
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_MODEL: gpt-5.1
-    command: > 
-        sh -c "./docker/wait-for-mysql.sh && php artisan queue:work --verbose --tries=3 --timeout=90"
-    networks:
-      - rtsnet
-
-  scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile-scheduler
-    container_name: rts-scheduler
-    command: >
-      sh -c "/usr/local/bin/wait-for-mysql && while true; do php artisan schedule:run --verbose; sleep 60; done"
-    volumes:
-      - ./:/var/www/html
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      APP_ENV: local
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: colony
-      DB_USERNAME: root
-      DB_PASSWORD: secret
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_MODEL: gpt-5.1
-    networks:
-      - rtsnet
-
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: rts-mail
-    ports:
-      - "8025:8025"
-    networks:
-      - rtsnet
-
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: rtschat-app
+        volumes:
+            - './:/var/www/html'
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        environment:
+            HOST_UID: 1000
+            HOST_GID: 1000
+            APP_ENV: local
+            APP_DEBUG: true
+            XDEBUG_MODE: off
+            XDEBUG_CONFIG: client_port=9003
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: colony
+            DB_USERNAME: root
+            DB_PASSWORD: secret
+            QUEUE_CONNECTION: database
+            OPENAI_API_KEY: '${OPENAI_API_KEY}'
+            OPENAI_MODEL: gpt-5.1
+            VITE_HOST: 0.0.0.0
+        networks:
+            - rtschatnet
+    vite:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: rtschat-vite
+        command: 'npm run dev'
+        volumes:
+            - './:/var/www/html'
+        ports:
+            - '5174:5173'
+        networks:
+            - rtschatnet
+    nginx:
+        image: 'nginx:1.27'
+        container_name: rtschat-nginx
+        ports:
+            - '8083:80'
+        volumes:
+            - './:/var/www/html'
+            - './docker/nginx/default.conf:/etc/nginx/conf.d/default.conf'
+        depends_on:
+            - app
+        networks:
+            - rtschatnet
+    mysql:
+        image: 'mysql:8.0'
+        container_name: rtschat-mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_DATABASE: colony
+        volumes:
+            - 'mysqldata:/var/lib/mysql'
+        ports:
+            - '3308:3306'
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - 'mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD}'
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        networks:
+            - rtschatnet
+    redis:
+        image: 'redis:7'
+        container_name: rtschat-redis
+        ports:
+            - '6380:6379'
+        networks:
+            - rtschatnet
+    queue:
+        build:
+            context: .
+            dockerfile: Dockerfile-queue
+        container_name: rtschat-queue
+        volumes:
+            - './:/var/www/html'
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        depends_on:
+            mysql:
+                condition: service_healthy
+        environment:
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: colony
+            DB_USERNAME: root
+            DB_PASSWORD: secret
+            QUEUE_CONNECTION: database
+            XDEBUG_MODE: off
+            XDEBUG_CONFIG: client_port=9003
+            OPENAI_API_KEY: '${OPENAI_API_KEY}'
+            OPENAI_MODEL: gpt-5.1
+        command: "sh -c \"./docker/wait-for-mysql.sh && php artisan queue:work --verbose --tries=3 --timeout=90\"\n"
+        networks:
+            - rtschatnet
+    scheduler:
+        build:
+            context: .
+            dockerfile: Dockerfile-scheduler
+        container_name: rtschat-scheduler
+        command: "sh -c \"/usr/local/bin/wait-for-mysql && while true; do php artisan schedule:run --verbose; sleep 60; done\"\n"
+        volumes:
+            - './:/var/www/html'
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        depends_on:
+            mysql:
+                condition: service_healthy
+        environment:
+            APP_ENV: local
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: colony
+            DB_USERNAME: root
+            DB_PASSWORD: secret
+            XDEBUG_MODE: off
+            XDEBUG_CONFIG: client_port=9003
+            OPENAI_API_KEY: '${OPENAI_API_KEY}'
+            OPENAI_MODEL: gpt-5.1
+        networks:
+            - rtschatnet
+    mailpit:
+        image: 'axllent/mailpit:latest'
+        container_name: rtschat-mail
+        ports:
+            - '8026:8025'
+        networks:
+            - rtschatnet
+    phpmyadmin:
+        image: 'phpmyadmin:latest'
+        container_name: rtschat-phpmyadmin
+        restart: always
+        ports:
+            - '8084:80'
+        environment:
+            PMA_HOST: mysql
+            PMA_PORT: 3306
+            PMA_USER: root
+            PMA_PASSWORD: secret
+            UPLOAD_LIMIT: 100M
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - rtschatnet
 volumes:
-  mysqldata:
-
+    mysqldata: null
+    sail-mysql:
+        driver: local
 networks:
-  rtsnet:
-    driver: bridge
+    rtschatnet:
+        driver: bridge

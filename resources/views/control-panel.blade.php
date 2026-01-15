@@ -1,37 +1,71 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Admin Control Panel') }}
-        </h2>
-    </x-slot>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Control Panel</title>
+    @livewireStyles
+    <style>
+        :root { color-scheme: dark; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #101322 0%, #05070b 60%, #030409 100%);
+            color: #f2f5ff;
+            font-family: 'Figtree', 'Lato', sans-serif;
+            padding: 2rem;
+        }
+        .panel {
+            width: min(540px, 100%);
+            background: rgba(11, 14, 26, 0.95);
+            border-radius: 18px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+        h1 { margin: 0 0 1rem; }
+        p { margin: 0 0 1.25rem; color: #cdd7ff; }
+        .stack { display: flex; flex-direction: column; gap: 0.75rem; }
+        button, .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 100%;
+            border: none; border-radius: 999px;
+            padding: 0.85rem 1.25rem;
+            font-weight: 600; font-size: 1rem;
+            cursor: pointer; text-decoration: none;
+        }
+        .btn-primary { background: linear-gradient(120deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 12px 25px rgba(99,102,241,0.35); }
+        .btn-muted { background: rgba(255,255,255,0.08); color: #cdd7ff; border: 1px solid rgba(255,255,255,0.12); }
+        .links { margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; font-size: 0.9rem; }
+        a { color: #9ecbff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <livewire:layout.navigation />
+    <div class="panel">
+        <h1>Admin Control Panel</h1>
+        <p>Quick links to developer tooling.</p>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-8">
-                <p class="text-center text-gray-600 dark:text-gray-300 mb-8">
-                    Quick links to developer tooling.
-                </p>
+        <div class="stack">
+            <form action="{{ route('map.index') }}" method="GET">
+                <button type="submit" class="btn btn-primary">Map Generator</button>
+            </form>
 
-                <div class="flex flex-col items-center gap-4">
-                    <form action="{{ route('map.index') }}" method="GET" class="w-full sm:w-2/3">
-                        <button
-                            type="submit"
-                            class="w-full text-center inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Map Generator
-                        </button>
-                    </form>
+            <form action="{{ route('profile') }}" method="GET">
+                <button type="submit" class="btn btn-muted">Change My Password</button>
+            </form>
+        </div>
 
-                    <form action="{{ route('profile') }}" method="GET" class="w-full sm:w-2/3">
-                        <button
-                            type="submit"
-                            class="w-full text-center inline-flex items-center justify-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Change My Password
-                        </button>
-                    </form>
-                </div>
-            </div>
+        <div class="links">
+            <a href="{{ route('main.entrance') }}">Main Menu</a>
         </div>
     </div>
-</x-app-layout>
+    @livewireScripts
+</body>
+</html>

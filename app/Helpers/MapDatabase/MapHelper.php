@@ -118,6 +118,10 @@ class MapHelper
                 $tile = TileRepository::findByMapCoordinates($mapId, $mapCoordinateX, $mapCoordinateY);
                 $tile->name = 'Passable Land';
                 $tile->tileTypeId = '1';
+                // Ensure tree flag is cleared when resetting tiles
+                if (property_exists($tile, 'has_trees')) {
+                    $tile->has_trees = false;
+                }
                 $tile->setCellId($cell->getId());
                 $tile->save();
             }
@@ -151,6 +155,9 @@ class MapHelper
                     $tile = TileRepository::findByMapCoordinates($mapId, $mapCoordinateX, $mapCoordinateY);
                     $tile->name = 'Passable Land';
                     $tile->tileTypeId = '1';
+                    if (property_exists($tile, 'has_trees')) {
+                        $tile->has_trees = false;
+                    }
                     $tile->setCellId($cell->getId());
                     $tile->save();
                 }

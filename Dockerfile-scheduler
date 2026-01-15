@@ -13,7 +13,12 @@ RUN apt-get update && apt-get install -y \
     netcat-openbsd \
     && docker-php-ext-install pdo_mysql zip
 
+# Install Xdebug for scheduled task debugging
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY docker/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 # Add wait script
 COPY docker/wait-for-mysql.sh /usr/local/bin/wait-for-mysql

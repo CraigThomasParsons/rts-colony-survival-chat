@@ -31,7 +31,7 @@
         }
         .treeTile {
           background-color: #003300;
-          border-color: #006600;
+          border-color: #006600;v
           border-bottom-style: solid;
           border-bottom-width: 5px;
           border-bottom-color: #533118;
@@ -103,9 +103,24 @@
           @if (isset($tiles[$y]))
             <tr>
               @for ($x = 0; $x < ($size * 2); $x += 1)
-                <td title="{{$tiles[$y][$x]->mapCoordinateX}},{{$tiles[$y][$x]->mapCoordinateY}}-{{$tiles[$y][$x]->tileTypeId}}" class='@include('mapgen.tiletypeclassname', array('tile' => $tiles[$y][$x]))'>
-                  <div>&nbsp;</div>
-                </td>
+                @php
+                  $tileExists = isset($tiles[$y]) && isset($tiles[$y][$x]) && $tiles[$y][$x] !== null;
+                @endphp
+                @if ($tileExists)
+                  <td title="{{$tiles[$y][$x]->mapCoordinateX}},{{$tiles[$y][$x]->mapCoordinateY}}-{{$tiles[$y][$x]->tileTypeId}}" class='@include('mapgen.tiletypeclassname', array('tile' => $tiles[$y][$x]))'>
+                    <div>&nbsp;</div>
+                  </td>
+                @else
+                  <td class="waterTile">
+                    <div>&nbsp;</div>
+                  </td>
+                @endif
+              @endfor
+            </tr>
+          @else
+            <tr>
+              @for ($x = 0; $x < ($size * 2); $x += 1)
+                <td class="waterTile"><div>&nbsp;</div></td>
               @endfor
             </tr>
           @endif
@@ -113,11 +128,11 @@
       </table>
     <div>
     @if (isset($next))
-            <a href="{{URL::route($next, '1')}}">
+            <a href="{{URL::route($next, ['mapId' => request()->route('mapId')])}}">
           Next Step
         </a>
     @else
-        <a href="{{URL::route('mapgen.step3', '1')}}">
+        <a href="{{ route('mapgen.preview', ['mapId' => request()->route('mapId') ?? 1]) }}">
           Next Step
         </a>
     @endif

@@ -69,7 +69,7 @@ class Cell
      */
     public function hasId()
     {
-        return ((isset($this->data['id']) === true) && ($this->data['id'] > 0));
+        return ((isset($this->data['id']) === true) && !empty($this->data['id']));
     }
 
     /**
@@ -149,7 +149,20 @@ class Cell
      */
     protected function getDefaultCellType()
     {
-        return CellType::firstWhere('name', CellType::BASIC_LAND)->id;
+        $cellType = CellType::firstWhere('name', CellType::BASIC_LAND);
+        
+        if (!$cellType) {
+            // Fallback: try to get the first available CellType, or throw descriptive error
+            $cellType = CellType::first();
+            if (!$cellType) {
+                throw new \RuntimeException(
+                    'No CellType records found in database. Run: php artisan db:seed --class=CellTypeSeeder'
+                );
+            }
+            \Log::warning("CellType '{CellType::BASIC_LAND}' not found, falling back to first CellType (id: {$cellType->id})");
+        }
+        
+        return $cellType->id;
     }
 
     /**

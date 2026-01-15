@@ -1,0 +1,16 @@
+[Unit]
+Description=RTS Colony Queue Worker
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/craigpar/Code/rts-colony-chat
+ExecStart=/usr/bin/php artisan queue:work --sleep=1 --tries=3 --timeout=90
+Restart=always
+RestartSec=3
+Environment=APP_ENV=local
+Environment=PATH=/usr/bin:/bin
+
+[Install]
+WantedBy=default.target
+
