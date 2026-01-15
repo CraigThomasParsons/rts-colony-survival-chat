@@ -1,0 +1,2 @@
+https://artist1.bandcamp.com/album/test-album-1
+https://artist2.bandcamp.com/album/test-album-2
