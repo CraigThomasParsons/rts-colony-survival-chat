@@ -14,7 +14,8 @@
         "livewire/volt": "^1.0",
         "lomkit/laravel-rest-api": "^2.12",
         "openai-php/client": "^0.18.0",
-        "picocss/pico": "*"
+        "picocss/pico": "*",
+        "symfony/dom-crawler": "^8.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

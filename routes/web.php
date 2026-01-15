@@ -124,4 +124,11 @@ Route::get("/dev/qa", function () {
     );
 });
 
+
+// Bandcamp Music Player Route
+Route::get('/music/{track}', function (\App\Models\MusicTrack $track) {
+    if (!\Illuminate\Support\Facades\Storage::exists($track->file_path)) abort(404);
+    return \Illuminate\Support\Facades\Storage::response($track->file_path);
+})->middleware('auth')->name('music.stream');
+
 require __DIR__ . "/auth.php";
